@@ -59,7 +59,7 @@ def is_allowed_security_level(level):
 
 async def get_risky_level(files):
     json_data1 = await core.get_data_by_mode('local', 'custom-node-list.json')
-    json_data2 = await core.get_data_by_mode('cache', 'custom-node-list.json', channel_url='https://github.com/ltdrdata/ComfyUI-Manager/raw/main/custom-node-list.json')
+    json_data2 = await core.get_data_by_mode('cache', 'custom-node-list.json', channel_url='https://github.com/ltdrdata/ComfyUI-Manager/raw/main')
 
     all_urls = set()
     for x in json_data1['custom_nodes'] + json_data2['custom_nodes']:
@@ -249,8 +249,12 @@ def get_model_dir(data):
         model_type = data['type']
         if model_type == "checkpoints":
             base_model = folder_paths.folder_names_and_paths["checkpoints"][0][0]
+        elif model_type == "checkpoint":
+            base_model = folder_paths.folder_names_and_paths["checkpoints"][0][0]
         elif model_type == "unclip":
             base_model = folder_paths.folder_names_and_paths["checkpoints"][0][0]
+        elif model_type == "clip":
+            base_model = folder_paths.folder_names_and_paths["clip"][0][0]
         elif model_type == "VAE":
             base_model = folder_paths.folder_names_and_paths["vae"][0][0]
         elif model_type == "lora":
