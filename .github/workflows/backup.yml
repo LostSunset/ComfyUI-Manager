@@ -1,4 +1,4 @@
-name: Backup Fork
+name: Backup Fork and Sync
 
 on:
   schedule:
@@ -6,7 +6,7 @@ on:
   workflow_dispatch:  # 允許手動觸發
 
 jobs:
-  backup:
+  backup-and-sync:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -26,32 +26,26 @@ jobs:
           git remote add upstream https://github.com/ltdrdata/ComfyUI-Manager.git
           git fetch upstream
 
-      - name: Backup each branch
-        run: |
-          for branch in $(echo "${{ steps.list_branches.outputs.branches }}"); do
-            git checkout $branch || git checkout -b $branch upstream/$branch
-            git merge upstream/$branch || echo "No changes to merge or merge conflict"
-            git push --tags backup $branch || echo "Failed to push $branch to backup repository"
-          done
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
-
       - name: Configure Git
         run: |
           git config --global user.name 'github-actions'
           git config --global user.email 'github-actions@github.com'
 
+      - name: Backup and sync each branch
+        run: |
+          for branch in $(echo "${{ steps.list_branches.outputs.branches }}"); do
+            git checkout $branch || git checkout -b $branch upstream/$branch
+            git merge upstream/$branch || echo "No changes to merge or merge conflict"
+            git push origin $branch || echo "Failed to push $branch to origin"
+          done
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Create version tag
         run: |
           TIMESTAMP=$(date +"%Y%m%d%H%M%S")
-          git tag -a "backup-$TIMESTAMP" -m "Backup on $TIMESTAMP"
-
-      - name: Push changes and tags to backup
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
-        run: |
-          git remote add backup https://$GH_TOKEN@github.com/LostSunset/ComfyUI-Manager.git
-          git push backup --tags || echo "Failed to push tags to backup repository"
+          git tag -a "sync-$TIMESTAMP" -m "Sync on $TIMESTAMP"
+          git push --tags origin || echo "Failed to push tags to origin"
 
       - name: Check for errors
         if: failure()
