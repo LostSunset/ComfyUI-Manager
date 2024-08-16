@@ -37,11 +37,13 @@ restore_snapshot_path = os.path.join(startup_script_path, "restore-snapshot.json
 pip_overrides_path = os.path.join(comfyui_manager_path, "pip_overrides.json")
 git_script_path = os.path.join(comfyui_manager_path, "git_helper.py")
 
+cm_global.pip_blacklist = ['torch', 'torchsde', 'torchvision']
 cm_global.pip_downgrade_blacklist = ['torch', 'torchsde', 'torchvision', 'transformers', 'safetensors', 'kornia']
 cm_global.pip_overrides = {}
 if os.path.exists(pip_overrides_path):
     with open(pip_overrides_path, 'r', encoding="UTF-8", errors="ignore") as json_file:
         cm_global.pip_overrides = json.load(json_file)
+        cm_global.pip_overrides['numpy'] = 'numpy<2'
 
 
 def check_comfyui_hash():
@@ -55,6 +57,7 @@ def check_comfyui_hash():
 
 
 check_comfyui_hash()  # This is a preparation step for manager_core
+core.check_invalid_nodes()
 
 
 def read_downgrade_blacklist():
@@ -80,6 +83,7 @@ read_downgrade_blacklist()  # This is a preparation step for manager_core
 class Ctx:
     def __init__(self):
         self.channel = 'default'
+        self.no_deps = False
         self.mode = 'cache'
 
     def set_channel_mode(self, channel, mode):
@@ -100,6 +104,9 @@ class Ctx:
         asyncio.run(unified_manager.reload(cache_mode=self.mode == 'cache'))
         asyncio.run(unified_manager.load_nightly(self.channel, self.mode))
 
+    def set_no_deps(self, no_deps):
+        self.no_deps = no_deps
+
 
 channel_ctx = Ctx()
 
@@ -107,7 +114,7 @@ channel_ctx = Ctx()
 def install_node(node_spec_str, is_all=False, cnt_msg=''):
     if core.is_valid_url(node_spec_str):
         # install via urls
-        res = asyncio.run(core.gitclone_install(node_spec_str))
+        res = asyncio.run(core.gitclone_install(node_spec_str, no_deps=channel_ctx.no_deps))
         if not res.result:
             print(res.msg)
             print(f"[bold red]ERROR: An error occurred while installing '{node_spec_str}'.[/bold red]")
@@ -125,7 +132,7 @@ def install_node(node_spec_str, is_all=False, cnt_msg=''):
         if not is_specified:
             version_spec = None
 
-        res = asyncio.run(unified_manager.install_by_id(node_name, version_spec, channel_ctx.channel, channel_ctx.mode, instant_execution=True))
+        res = asyncio.run(unified_manager.install_by_id(node_name, version_spec, channel_ctx.channel, channel_ctx.mode, instant_execution=True, no_deps=channel_ctx.no_deps))
 
         if res.action == 'skip':
             print(f"{cnt_msg} [   SKIP  ] {node_name:50} => Already installed")
@@ -171,7 +178,7 @@ def fix_node(node_spec_str, is_all=False, cnt_msg=''):
     node_name, version_spec, _ = node_spec
 
     print(f"{cnt_msg} [   FIXING  ]: {node_name:50}[{version_spec}]")
-    res = unified_manager.unified_fix(node_name, version_spec)
+    res = unified_manager.unified_fix(node_name, version_spec, no_deps=channel_ctx.no_deps)
 
     if not res.result:
         print(f"ERROR: f{res.msg}")
@@ -211,7 +218,7 @@ def update_node(node_spec_str, is_all=False, cnt_msg=''):
 
     node_name, version_spec, _ = node_spec
 
-    res = unified_manager.unified_update(node_name, version_spec, return_postinstall=True)
+    res = unified_manager.unified_update(node_name, version_spec, no_deps=channel_ctx.no_deps, return_postinstall=True)
 
     if not res.result:
         print(f"ERROR: An error occurred while updating '{node_name}'.")
@@ -485,7 +492,7 @@ def get_all_installed_node_specs():
 
         latest = unified_manager.get_from_cnr_inactive_nodes(k)
         if latest is not None:
-            node_spec_str = f"{k}@{latest}"
+            node_spec_str = f"{k}@{str(latest[0])}"
             res.append(node_spec_str)
 
     for k, _ in unified_manager.nightly_inactive_nodes.keys():
@@ -549,9 +556,18 @@ def install(
         mode: str = typer.Option(
             None,
             help="[remote|local|cache]"
-        )
+        ),
+        no_deps: Annotated[
+            Optional[bool],
+            typer.Option(
+                "--no-deps",
+                show_default=False,
+                help="Skip installing any Python dependencies",
+            ),
+        ] = False,
 ):
     channel_ctx.set_channel_mode(channel, mode)
+    channel_ctx.set_no_deps(no_deps)
     for_each_nodes(nodes, act=install_node)
 
 
@@ -571,8 +587,17 @@ def reinstall(
             None,
             help="[remote|local|cache]"
         ),
+        no_deps: Annotated[
+            Optional[bool],
+            typer.Option(
+                "--no-deps",
+                show_default=False,
+                help="Skip installing any Python dependencies",
+            ),
+        ] = False,
 ):
     channel_ctx.set_channel_mode(channel, mode)
+    channel_ctx.set_no_deps(no_deps)
     for_each_nodes(nodes, act=reinstall_node)
 
 
@@ -1025,8 +1050,8 @@ def export_custom_node_ids(
         for x in unified_manager.cnr_map.keys():
             print(x, file=output_file)
 
-        custom_nodes = unified_manager.get_custom_nodes(channel=channel_ctx.channel, mode=channel_ctx.mode)
-        for x in custom_nodes:
+        custom_nodes = asyncio.run(unified_manager.get_custom_nodes(channel=channel_ctx.channel, mode=channel_ctx.mode))
+        for x in custom_nodes.values():
             if 'cnr_latest' not in x:
                 if len(x['files']) == 1:
                     repo_url = x['files'][0]

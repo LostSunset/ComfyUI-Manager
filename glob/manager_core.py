@@ -31,9 +31,11 @@ import cnr_utils
 from manager_util import *
 
 
-version_code = [2, 48, 1]
+version_code = [2, 49]
 version_str = f"V{version_code[0]}.{version_code[1]}" + (f'.{version_code[2]}' if len(version_code) > 2 else '')
 
+
+DEFAULT_CHANNEL = "https://raw.githubusercontent.com/ltdrdata/ComfyUI-Manager/main"
 
 def download_url(url, dest_folder, filename):
     # Ensure the destination folder exists
@@ -55,6 +57,55 @@ def download_url(url, dest_folder, filename):
 
 
 custom_nodes_path = os.path.abspath(os.path.join(comfyui_manager_path, '..'))
+
+invalid_nodes = {}
+
+
+def check_invalid_nodes():
+    global invalid_nodes
+
+    try:
+        import folder_paths
+        node_paths = folder_paths.get_folder_paths("custom_nodes")
+    except:
+        try:
+            sys.path.append(comfy_path)
+            import folder_paths
+        except:
+            raise Exception(f"Invalid COMFYUI_PATH: {comfy_path}")
+
+    def check(root):
+        global invalid_nodes
+
+        subdirs = [d for d in os.listdir(root) if os.path.isdir(os.path.join(root, d))]
+        for subdir in subdirs:
+            if subdir in ['.disabled', '__pycache__']:
+                continue
+
+            if '@' in subdir:
+                spec = subdir.split('@')
+                if spec[1] in ['unknown', 'nightly']:
+                    continue
+
+                if not os.path.exists(os.path.join(root, subdir, '.tracking')):
+                    invalid_nodes[spec[0]] = os.path.join(root, subdir)
+
+    node_paths = folder_paths.get_folder_paths("custom_nodes")
+    for x in node_paths:
+        check(x)
+
+        disabled_dir = os.path.join(x, '.disabled')
+        if os.path.exists(disabled_dir):
+            check(disabled_dir)
+
+    if len(invalid_nodes):
+        print(f"\n-------------------- ComfyUI-Manager invalid nodes notice ----------------")
+        print(f"\nNodes requiring reinstallation have been detected:\n(Directly delete the corresponding path and reinstall.)\n")
+
+        for x in invalid_nodes.values():
+            print(x)
+
+        print("\n---------------------------------------------------------------------------\n")
 
 
 comfy_path = os.environ.get('COMFYUI_PATH')
@@ -119,11 +170,14 @@ def clear_pip_cache():
 def is_blacklisted(name):
     name = name.strip()
 
-    pattern = r'([^<>!=]+)([<>!=]=?)(.*)'
+    pattern = r'([^<>!=]+)([<>!=]=?)([^ ]*)'
     match = re.search(pattern, name)
 
     if match:
         name = match.group(1)
+
+    if name in cm_global.pip_blacklist:
+        return True
 
     if name in cm_global.pip_downgrade_blacklist:
         pips = get_installed_packages()
@@ -145,11 +199,14 @@ def is_installed(name):
     if name.startswith('#'):
         return True
 
-    pattern = r'([^<>!=]+)([<>!=]=?)(.*)'
+    pattern = r'([^<>!=]+)([<>!=]=?)([0-9.a-zA-Z]*)'
     match = re.search(pattern, name)
 
     if match:
         name = match.group(1)
+
+    if name in cm_global.pip_blacklist:
+        return True
 
     if name in cm_global.pip_downgrade_blacklist:
         pips = get_installed_packages()
@@ -223,6 +280,10 @@ class UnifiedManager:
         self.custom_node_map_cache = {}    # (channel, mode) -> augmented custom node list json
         self.processed_install = set()
 
+    def get_cnr_by_repo(self, url):
+        normalized_url = url.replace("git@github.com:", "https://github.com/")
+        return self.repo_cnr_map.get(normalized_url)
+
     def resolve_unspecified_version(self, node_name, guess_mode=None):
         if guess_mode == 'active':
             # priority:
@@ -255,7 +316,7 @@ class UnifiedManager:
                 latest = self.get_from_cnr_inactive_nodes(node_name)
 
                 if latest is not None:
-                    version_spec = latest[0]
+                    version_spec = str(latest[0])
                 else:
                     if node_name in self.nightly_inactive_nodes:
                         version_spec = "nightly"
@@ -336,7 +397,7 @@ class UnifiedManager:
 
         for k, v in config.items():
             if k.startswith('remote ') and 'url' in v:
-                cnr = self.repo_cnr_map.get(v['url'])
+                cnr = self.get_cnr_by_repo(v['url'])
                 if cnr:
                     return "nightly"
                 else:
@@ -353,7 +414,7 @@ class UnifiedManager:
 
         for k, v in config.items():
             if k.startswith('remote ') and 'url' in v:
-                cnr = self.repo_cnr_map.get(v['url'])
+                cnr = self.get_cnr_by_repo(v['url'])
                 if cnr:
                     return "nightly", cnr['id'], v['url']
                 else:
@@ -593,7 +654,8 @@ class UnifiedManager:
             self.cnr_map[x['id']] = x
 
             if 'repository' in x:
-                self.repo_cnr_map[x['repository']] = x
+                normalized_url = x['repository'].replace("git@github.com:", "https://github.com/")
+                self.repo_cnr_map[normalized_url] = x
 
         # reload node status info from custom_nodes/*
         for x in os.listdir(custom_nodes_path):
@@ -634,13 +696,14 @@ class UnifiedManager:
         return res
 
     async def get_custom_nodes(self, channel, mode):
-        channel = normalize_channel(channel)
-
-        cache = self.custom_node_map_cache.get((channel, mode))
+        default_channel = normalize_channel('default')
+        cache = self.custom_node_map_cache.get((default_channel, mode)) # CNR/nightly should always be based on the default channel.
 
         if cache is not None:
             return cache
 
+        channel = normalize_channel(channel)
+        print(f"nightly_channel: {channel}/{mode}")
         nodes = await self.load_nightly(channel, mode)
 
         res = {}
@@ -648,7 +711,7 @@ class UnifiedManager:
         for v in nodes.values():
             v = v[0]
             if len(v['files']) == 1:
-                cnr = self.repo_cnr_map.get(v['files'][0])
+                cnr = self.get_cnr_by_repo(v['files'][0])
                 if cnr:
                     if 'latest_version' not in cnr:
                         v['cnr_latest'] = '0.0.0'
@@ -677,7 +740,7 @@ class UnifiedManager:
         except:
             return version.parse("0.0.0")
 
-    def execute_install_script(self, url, repo_path, lazy_mode=False, instant_execution=False):
+    def execute_install_script(self, url, repo_path, instant_execution=False, lazy_mode=False, no_deps=False):
         install_script_path = os.path.join(repo_path, "install.py")
         requirements_path = os.path.join(repo_path, "requirements.txt")
 
@@ -685,7 +748,7 @@ class UnifiedManager:
             install_cmd = ["#LAZY-INSTALL-SCRIPT", sys.executable]
             return try_install_script(url, repo_path, install_cmd)
         else:
-            if os.path.exists(requirements_path):
+            if os.path.exists(requirements_path) and not no_deps:
                 print("Install: pip packages")
                 with open(requirements_path, "r") as requirements_file:
                     for line in requirements_file:
@@ -704,7 +767,7 @@ class UnifiedManager:
 
         return True
 
-    def unified_fix(self, node_id, version_spec, instant_execution=False):
+    def unified_fix(self, node_id, version_spec, instant_execution=False, no_deps=False):
         """
         fix dependencies
         """
@@ -715,11 +778,11 @@ class UnifiedManager:
         if info is None or not os.path.exists(info[1]):
             return result.fail(f'not found: {node_id}@{version_spec}')
 
-        self.execute_install_script(node_id, info[1], instant_execution=instant_execution)
+        self.execute_install_script(node_id, info[1], instant_execution=instant_execution, no_deps=no_deps)
 
         return result
 
-    def cnr_switch_version(self, node_id, version_spec=None, instant_execution=False, return_postinstall=False):
+    def cnr_switch_version(self, node_id, version_spec=None, instant_execution=False, no_deps=False, return_postinstall=False):
         """
         switch between cnr version
         """
@@ -783,7 +846,7 @@ class UnifiedManager:
         result.target = version_spec
 
         def postinstall():
-            res = self.execute_install_script(f"{node_id}@{version_spec}", new_install_path, instant_execution=instant_execution)
+            res = self.execute_install_script(f"{node_id}@{version_spec}", new_install_path, instant_execution=instant_execution, no_deps=no_deps)
             return res
 
         if return_postinstall:
@@ -825,7 +888,9 @@ class UnifiedManager:
             if repo_and_path is None:
                 return result.fail(f'Specified inactive node not exists: {node_id}@unknown')
             from_path = repo_and_path[1]
-            to_path = os.path.join(custom_nodes_path, f"{node_id}@unknown")
+            # NOTE: Keep original name as possible if unknown node
+            # to_path = os.path.join(custom_nodes_path, f"{node_id}@unknown")
+            to_path = os.path.join(custom_nodes_path, node_id)
         elif version_spec == 'nightly':
             self.unified_disable(node_id, False)
             from_path = self.nightly_inactive_nodes.get(node_id)
@@ -883,10 +948,12 @@ class UnifiedManager:
 
         if is_unknown:
             repo_and_path = self.unknown_active_nodes.get(node_id)
-            to_path = os.path.join(custom_nodes_path, '.disabled', f"{node_id}@unknown")
+            # NOTE: Keep original name as possible if unknown node
+            # to_path = os.path.join(custom_nodes_path, '.disabled', f"{node_id}@unknown")
+            to_path = os.path.join(custom_nodes_path, '.disabled', node_id)
 
             if repo_and_path is None or not os.path.exists(repo_and_path[1]):
-                return result.fail(f'Specified active node not exists: {node_id}@unknown')
+                return result.fail(f'Specified active node not exists: {node_id}')
 
             shutil.move(repo_and_path[1], to_path)
             result.append((repo_and_path[1], to_path))
@@ -976,7 +1043,7 @@ class UnifiedManager:
 
         return result
 
-    def cnr_install(self, node_id, version_spec=None, instant_execution=False, return_postinstall=False):
+    def cnr_install(self, node_id, version_spec=None, instant_execution=False, no_deps=False, return_postinstall=False):
         result = ManagedResult('install-cnr')
 
         node_info = cnr_utils.install_node(node_id, version_spec)
@@ -1013,7 +1080,7 @@ class UnifiedManager:
         result.target = version_spec
 
         def postinstall():
-            return self.execute_install_script(node_id, install_path, instant_execution=instant_execution)
+            return self.execute_install_script(node_id, install_path, instant_execution=instant_execution, no_deps=no_deps)
 
         if return_postinstall:
             return result.with_postinstall(postinstall)
@@ -1023,7 +1090,7 @@ class UnifiedManager:
 
         return result
 
-    def repo_install(self, url, repo_path, instant_execution=False, return_postinstall=False):
+    def repo_install(self, url, repo_path, instant_execution=False, no_deps=False, return_postinstall=False):
         result = ManagedResult('install-git')
         result.append(url)
 
@@ -1046,7 +1113,7 @@ class UnifiedManager:
                 repo.close()
 
             def postinstall():
-                return self.execute_install_script(url, repo_path, instant_execution=instant_execution)
+                return self.execute_install_script(url, repo_path, instant_execution=instant_execution, no_deps=no_deps)
 
             if return_postinstall:
                 return result.with_postinstall(postinstall)
@@ -1060,7 +1127,7 @@ class UnifiedManager:
         print("Installation was successful.")
         return result
 
-    def repo_update(self, repo_path, instant_execution=False, return_postinstall=False):
+    def repo_update(self, repo_path, instant_execution=False, no_deps=False, return_postinstall=False):
         result = ManagedResult('update-git')
 
         if not os.path.exists(os.path.join(repo_path, '.git')):
@@ -1109,7 +1176,7 @@ class UnifiedManager:
                 url = "unknown repo"
 
             def postinstall():
-                return self.execute_install_script(url, repo_path, instant_execution=instant_execution)
+                return self.execute_install_script(url, repo_path, instant_execution=instant_execution, no_deps=no_deps)
 
             if return_postinstall:
                 return result.with_postinstall(postinstall)
@@ -1121,7 +1188,7 @@ class UnifiedManager:
         else:
             return ManagedResult('skip').with_msg('Up to date')
 
-    def unified_update(self, node_id, version_spec=None, instant_execution=False, return_postinstall=False):
+    def unified_update(self, node_id, version_spec=None, instant_execution=False, no_deps=False, return_postinstall=False):
         if version_spec is None:
             version_spec = self.resolve_unspecified_version(node_id, guess_mode='active')
 
@@ -1129,13 +1196,13 @@ class UnifiedManager:
             return ManagedResult('update').fail(f'Update not available: {node_id}@{version_spec}')
 
         if version_spec == 'nightly':
-            return self.repo_update(self.active_nodes[node_id][1], instant_execution=instant_execution, return_postinstall=return_postinstall).with_target('nightly')
+            return self.repo_update(self.active_nodes[node_id][1], instant_execution=instant_execution, no_deps=no_deps, return_postinstall=return_postinstall).with_target('nightly')
         elif version_spec == 'unknown':
-            return self.repo_update(self.unknown_active_nodes[node_id][1], instant_execution=instant_execution, return_postinstall=return_postinstall).with_target('unknown')
+            return self.repo_update(self.unknown_active_nodes[node_id][1], instant_execution=instant_execution, no_deps=no_deps, return_postinstall=return_postinstall).with_target('unknown')
         else:
-            return self.cnr_switch_version(node_id, instant_execution=instant_execution, return_postinstall=return_postinstall)
+            return self.cnr_switch_version(node_id, instant_execution=instant_execution, no_deps=no_deps, return_postinstall=return_postinstall)
 
-    async def install_by_id(self, node_id, version_spec=None, channel=None, mode=None, instant_execution=False, return_postinstall=False):
+    async def install_by_id(self, node_id, version_spec=None, channel=None, mode=None, instant_execution=False, no_deps=False, return_postinstall=False):
         """
         priority if version_spec == None
         1. CNR latest
@@ -1175,7 +1242,7 @@ class UnifiedManager:
                     self.unified_disable(node_id, False)
 
             to_path = os.path.abspath(os.path.join(custom_nodes_path, f"{node_id}@{version_spec.replace('.', '_')}"))
-            res = self.repo_install(repo_url, to_path, instant_execution=instant_execution, return_postinstall=return_postinstall)
+            res = self.repo_install(repo_url, to_path, instant_execution=instant_execution, no_deps=no_deps, return_postinstall=return_postinstall)
             if res.result:
                 if version_spec == 'unknown':
                     self.unknown_active_nodes[node_id] = to_path
@@ -1186,7 +1253,7 @@ class UnifiedManager:
 
         if self.is_enabled(node_id, 'nightly'):
             # disable nightly nodes
-            self.unified_disable(node_id, 'nightly')  # NOTE: don't return from here
+            self.unified_disable(node_id, False)  # NOTE: don't return from here
 
         if self.is_disabled(node_id, version_spec):
             # enable and return if specified version is disabled
@@ -1195,12 +1262,12 @@ class UnifiedManager:
         if self.is_disabled(node_id, "cnr"):
             # enable and switch version if cnr is disabled (not specified version)
             self.unified_enable(node_id, "cnr")
-            return self.cnr_switch_version(node_id, version_spec, return_postinstall=return_postinstall)
+            return self.cnr_switch_version(node_id, version_spec, no_deps=no_deps, return_postinstall=return_postinstall)
 
         if self.is_enabled(node_id, "cnr"):
-            return self.cnr_switch_version(node_id, version_spec, return_postinstall=return_postinstall)
+            return self.cnr_switch_version(node_id, version_spec, no_deps=no_deps, return_postinstall=return_postinstall)
 
-        res = self.cnr_install(node_id, version_spec, instant_execution=instant_execution, return_postinstall=return_postinstall)
+        res = self.cnr_install(node_id, version_spec, instant_execution=instant_execution, no_deps=no_deps, return_postinstall=return_postinstall)
         if res.result:
             self.active_nodes[node_id] = version_spec, res.to_path
 
@@ -1226,33 +1293,34 @@ class UnifiedManager:
 
         self.nightly_inactive_nodes.update(fixes)
 
-        print(f"Migration: STAGE 2")
-        # migrate unknown inactive
-        fixes = {}
-        for x, v in self.unknown_inactive_nodes.items():
-            if v[1].endswith('@unknown'):
-                continue
+        # NOTE: Don't migration unknown node - keep original name as possible
+        # print(f"Migration: STAGE 2")
+        # # migrate unknown inactive
+        # fixes = {}
+        # for x, v in self.unknown_inactive_nodes.items():
+        #     if v[1].endswith('@unknown'):
+        #         continue
+        #
+        #     new_path = os.path.join(custom_nodes_path, '.disabled', f"{x}@unknown")
+        #     shutil.move(v[1], new_path)
+        #     fixes[x] = v[0], new_path
+        #
+        # self.unknown_inactive_nodes.update(fixes)
 
-            new_path = os.path.join(custom_nodes_path, '.disabled', f"{x}@unknown")
-            shutil.move(v[1], new_path)
-            fixes[x] = v[0], new_path
-
-        self.unknown_inactive_nodes.update(fixes)
-
-        print(f"Migration: STAGE 3")
+        # print(f"Migration: STAGE 3")
         # migrate unknown active nodes
-        fixes = {}
-        for x, v in self.unknown_active_nodes.items():
-            if v[1].endswith('@unknown'):
-                continue
+        # fixes = {}
+        # for x, v in self.unknown_active_nodes.items():
+        #     if v[1].endswith('@unknown'):
+        #         continue
+        #
+        #     new_path = os.path.join(custom_nodes_path, f"{x}@unknown")
+        #     shutil.move(v[1], new_path)
+        #     fixes[x] = v[0], new_path
+        #
+        # self.unknown_active_nodes.update(fixes)
 
-            new_path = os.path.join(custom_nodes_path, f"{x}@unknown")
-            shutil.move(v[1], new_path)
-            fixes[x] = v[0], new_path
-
-        self.unknown_active_nodes.update(fixes)
-
-        print(f"Migration: STAGE 4")
+        print(f"Migration: STAGE 2")
         # migrate active nodes
         fixes = {}
         for x, v in self.active_nodes.items():
@@ -1343,6 +1411,7 @@ def write_config():
         'model_download_by_agent': get_config()['model_download_by_agent'],
         'downgrade_blacklist': get_config()['downgrade_blacklist'],
         'security_level': get_config()['security_level'],
+        'skip_migration_check': get_config()['skip_migration_check'],
     }
     with open(config_path, 'w') as configfile:
         config.write(configfile)
@@ -1367,7 +1436,7 @@ def read_config():
                     'preview_method': default_conf['preview_method'] if 'preview_method' in default_conf else manager_funcs.get_current_preview_method(),
                     'badge_mode': default_conf['badge_mode'] if 'badge_mode' in default_conf else 'none',
                     'git_exe': default_conf['git_exe'] if 'git_exe' in default_conf else '',
-                    'channel_url': default_conf['channel_url'] if 'channel_url' in default_conf else 'https://raw.githubusercontent.com/ltdrdata/ComfyUI-Manager/main',
+                    'channel_url': default_conf['channel_url'] if 'channel_url' in default_conf else DEFAULT_CHANNEL,
                     'share_option': default_conf['share_option'] if 'share_option' in default_conf else 'all',
                     'bypass_ssl': default_conf['bypass_ssl'].lower() == 'true' if 'bypass_ssl' in default_conf else False,
                     'file_logging': default_conf['file_logging'].lower() == 'true' if 'file_logging' in default_conf else True,
@@ -1377,6 +1446,7 @@ def read_config():
                     'windows_selector_event_loop_policy': default_conf['windows_selector_event_loop_policy'].lower() == 'true' if 'windows_selector_event_loop_policy' in default_conf else False,
                     'model_download_by_agent': default_conf['model_download_by_agent'].lower() == 'true' if 'model_download_by_agent' in default_conf else False,
                     'downgrade_blacklist': default_conf['downgrade_blacklist'] if 'downgrade_blacklist' in default_conf else '',
+                    'skip_migration_check': default_conf['skip_migration_check'].lower() == 'true' if 'skip_migration_check' in default_conf else False,
                     'security_level': security_level
                }
 
@@ -1385,7 +1455,7 @@ def read_config():
             'preview_method': manager_funcs.get_current_preview_method(),
             'badge_mode': 'none',
             'git_exe': '',
-            'channel_url': 'https://raw.githubusercontent.com/ltdrdata/ComfyUI-Manager/main',
+            'channel_url': DEFAULT_CHANNEL,
             'share_option': 'all',
             'bypass_ssl': False,
             'file_logging': True,
@@ -1395,6 +1465,7 @@ def read_config():
             'windows_selector_event_loop_policy': False,
             'model_download_by_agent': False,
             'downgrade_blacklist': '',
+            'skip_migration_check': False,
             'security_level': 'normal',
         }
 
@@ -1521,7 +1592,8 @@ def __win_check_git_pull(path):
     process.wait()
 
 
-def execute_install_script(url, repo_path, lazy_mode=False, instant_execution=False):
+def execute_install_script(url, repo_path, lazy_mode=False, instant_execution=False, no_deps=False):
+    # import ipdb; ipdb.set_trace()
     install_script_path = os.path.join(repo_path, "install.py")
     requirements_path = os.path.join(repo_path, "requirements.txt")
 
@@ -1529,13 +1601,19 @@ def execute_install_script(url, repo_path, lazy_mode=False, instant_execution=Fa
         install_cmd = ["#LAZY-INSTALL-SCRIPT",  sys.executable]
         try_install_script(url, repo_path, install_cmd)
     else:
-        if os.path.exists(requirements_path):
+        if os.path.exists(requirements_path) and not no_deps:
             print("Install: pip packages")
             with open(requirements_path, "r") as requirements_file:
                 for line in requirements_file:
                     package_name = remap_pip_package(line.strip())
+
                     if package_name and not package_name.startswith('#'):
-                        install_cmd = [sys.executable, "-m", "pip", "install", package_name]
+                        if '--index-url' in package_name:
+                            s = package_name.split('--index-url')
+                            install_cmd = [sys.executable, "-m", "pip", "install", s[0].strip(), '--index-url', s[1].strip()]
+                        else:
+                            install_cmd = [sys.executable, "-m", "pip", "install", package_name]
+
                         if package_name.strip() != "" and not package_name.startswith('#'):
                             try_install_script(url, repo_path, install_cmd, instant_execution=instant_execution)
 
@@ -1547,7 +1625,7 @@ def execute_install_script(url, repo_path, lazy_mode=False, instant_execution=Fa
     return True
 
 
-def git_repo_update_check_with(path, do_fetch=False, do_update=False):
+def git_repo_update_check_with(path, do_fetch=False, do_update=False, no_deps=False):
     """
 
     perform update check for git custom node
@@ -1570,7 +1648,7 @@ def git_repo_update_check_with(path, do_fetch=False, do_update=False):
     if platform.system() == "Windows":
         updated, success = __win_check_git_update(path, do_fetch, do_update)
         if updated and success:
-            execute_install_script(None, path, lazy_mode=True)
+            execute_install_script(None, path, lazy_mode=True, no_deps=no_deps)
         return updated, success
     else:
         # Fetch the latest commits from the remote repository
@@ -1618,7 +1696,7 @@ def git_repo_update_check_with(path, do_fetch=False, do_update=False):
                 new_commit_hash = repo.head.commit.hexsha
 
                 if commit_hash != new_commit_hash:
-                    execute_install_script(None, path)
+                    execute_install_script(None, path, no_deps=no_deps)
                     print(f"\nUpdated: {path}")
                     return True, True
                 else:
@@ -1683,7 +1761,7 @@ def is_valid_url(url):
     return False
 
 
-async def gitclone_install(url, instant_execution=False, msg_prefix=''):
+async def gitclone_install(url, instant_execution=False, msg_prefix='', no_deps=False):
     await unified_manager.reload('cache')
     await unified_manager.get_custom_nodes('default', 'cache')
 
@@ -1697,13 +1775,17 @@ async def gitclone_install(url, instant_execution=False, msg_prefix=''):
     if url.endswith("/"):
         url = url[:-1]
     try:
-        cnr = unified_manager.repo_cnr_map.get(url)
+        cnr = unified_manager.get_cnr_by_repo(url)
         if cnr:
             cnr_id = cnr['id']
             return await unified_manager.install_by_id(cnr_id, version_spec='nightly')
         else:
             repo_name = os.path.splitext(os.path.basename(url))[0]
-            node_dir = f"{repo_name}@unknown"
+
+            # NOTE: Keep original name as possible if unknown node
+            # node_dir = f"{repo_name}@unknown"
+            node_dir = repo_name
+
             repo_path = os.path.join(custom_nodes_path, node_dir)
             disabled_repo_path1 = os.path.join(custom_nodes_path, '.disabled', node_dir)
             disabled_repo_path2 = os.path.join(custom_nodes_path, repo_name+'.disabled')  # old style
@@ -1729,7 +1811,7 @@ async def gitclone_install(url, instant_execution=False, msg_prefix=''):
                 repo.git.clear_cache()
                 repo.close()
 
-            execute_install_script(url, repo_path, instant_execution=instant_execution)
+            execute_install_script(url, repo_path, instant_execution=instant_execution, no_deps=no_deps)
             print("Installation was successful.")
             return result.with_target(repo_path)
 
@@ -1806,7 +1888,7 @@ async def get_data_by_mode(mode, filename, channel_url=None):
     return json_obj
 
 
-def gitclone_fix(files, instant_execution=False):
+def gitclone_fix(files, instant_execution=False, no_deps=False):
     print(f"Try fixing: {files}")
     for url in files:
         if not is_valid_url(url):
@@ -1822,7 +1904,7 @@ def gitclone_fix(files, instant_execution=False):
             if os.path.exists(repo_path+'.disabled'):
                 repo_path = repo_path+'.disabled'
 
-            if not execute_install_script(url, repo_path, instant_execution=instant_execution):
+            if not execute_install_script(url, repo_path, instant_execution=instant_execution, no_deps=no_deps):
                 return False
 
         except Exception as e:
@@ -1950,7 +2032,7 @@ def gitclone_set_active(files, is_disable):
     return True
 
 
-def gitclone_update(files, instant_execution=False, skip_script=False, msg_prefix=""):
+def gitclone_update(files, instant_execution=False, skip_script=False, msg_prefix="", no_deps=False):
     import os
 
     print(f"{msg_prefix}Update: {files}")
@@ -1968,10 +2050,10 @@ def gitclone_update(files, instant_execution=False, skip_script=False, msg_prefi
 
             if not skip_script:
                 if instant_execution:
-                    if not execute_install_script(url, repo_path, lazy_mode=False, instant_execution=True):
+                    if not execute_install_script(url, repo_path, lazy_mode=False, instant_execution=True, no_deps=no_deps):
                         return False
                 else:
-                    if not execute_install_script(url, repo_path, lazy_mode=True):
+                    if not execute_install_script(url, repo_path, lazy_mode=True, no_deps=no_deps):
                         return False
 
         except Exception as e:
@@ -1983,7 +2065,7 @@ def gitclone_update(files, instant_execution=False, skip_script=False, msg_prefi
     return True
 
 
-def update_path(repo_path, instant_execution=False):
+def update_path(repo_path, instant_execution=False, no_deps=False):
     if not os.path.exists(os.path.join(repo_path, '.git')):
         return "fail"
 
@@ -2023,7 +2105,7 @@ def update_path(repo_path, instant_execution=False):
 
     if commit_hash != remote_commit_hash:
         git_pull(repo_path)
-        execute_install_script("ComfyUI", repo_path, instant_execution=instant_execution)
+        execute_install_script("ComfyUI", repo_path, instant_execution=instant_execution, no_deps=no_deps)
         return "updated"
     else:
         return "skipped"
@@ -2335,7 +2417,7 @@ def unzip(model_path):
 def map_to_unified_keys(json_obj):
     res = {}
     for k, v in json_obj.items():
-        cnr = unified_manager.repo_cnr_map.get(k)
+        cnr = unified_manager.get_cnr_by_repo(k)
         if cnr:
             res[cnr['id']] = v
         else:
@@ -2357,7 +2439,7 @@ async def get_unified_total_nodes(channel, mode):
         files_in_json = v.get('files', [])
         cnr_id = None
         if len(files_in_json) == 1:
-            cnr = unified_manager.repo_cnr_map.get(files_in_json[0])
+            cnr = unified_manager.get_cnr_by_repo(files_in_json[0])
             if cnr:
                 cnr_id = cnr['id']
 
@@ -2366,6 +2448,9 @@ async def get_unified_total_nodes(channel, mode):
             cnr_ids.remove(cnr_id)
             updatable = False
             cnr = unified_manager.cnr_map[cnr_id]
+
+            if cnr_id in invalid_nodes:
+                v['invalid-installation'] = True
 
             if cnr_id in unified_manager.active_nodes:
                 # installed
@@ -2383,7 +2468,12 @@ async def get_unified_total_nodes(channel, mode):
             elif cnr_id in unified_manager.cnr_inactive_nodes:
                 # disabled
                 v['state'] = 'disabled'
-                v['version'] = unified_manager.get_from_cnr_inactive_nodes(cnr_id)[0]
+                cnr_ver = unified_manager.get_from_cnr_inactive_nodes(cnr_id)
+                if cnr_ver is not None:
+                    v['version'] = str(cnr_ver[0])
+                else:
+                    v['version'] = '0'
+
             elif cnr_id in unified_manager.nightly_inactive_nodes:
                 # disabled
                 v['state'] = 'disabled'
@@ -2413,52 +2503,54 @@ async def get_unified_total_nodes(channel, mode):
                 v['state'] = 'not-installed'
 
     # add items for pure cnr nodes
-    for cnr_id in cnr_ids:
-        cnr = unified_manager.cnr_map[cnr_id]
-        author = cnr['publisher']['name']
-        title = cnr['name']
-        reference = f"https://registry.comfy.org/nodes/{cnr['id']}"
-        install_type = "cnr"
-        description = cnr.get('description', '')
+    if normalize_channel(channel) == DEFAULT_CHANNEL:
+        # Don't show CNR nodes unless default channel
+        for cnr_id in cnr_ids:
+            cnr = unified_manager.cnr_map[cnr_id]
+            author = cnr['publisher']['name']
+            title = cnr['name']
+            reference = f"https://registry.comfy.org/nodes/{cnr['id']}"
+            install_type = "cnr"
+            description = cnr.get('description', '')
 
-        ver = None
-        active_version = None
-        updatable = False
-        import_fail = None
-        if cnr_id in unified_manager.active_nodes:
-            # installed
-            state = 'enabled'
-            updatable = unified_manager.is_updatable(cnr_id)
-            active_version = unified_manager.active_nodes[cnr['id']][0]
-            ver = active_version
+            ver = None
+            active_version = None
+            updatable = False
+            import_fail = None
+            if cnr_id in unified_manager.active_nodes:
+                # installed
+                state = 'enabled'
+                updatable = unified_manager.is_updatable(cnr_id)
+                active_version = unified_manager.active_nodes[cnr['id']][0]
+                ver = active_version
 
-            if cm_global.try_call(api="cm.is_import_failed_extension", name=unified_manager.active_nodes[cnr_id][1]):
-                import_fail = True
+                if cm_global.try_call(api="cm.is_import_failed_extension", name=unified_manager.active_nodes[cnr_id][1]):
+                    import_fail = True
 
-        elif cnr['id'] in unified_manager.cnr_inactive_nodes:
-            # disabled
-            state = 'disabled'
-        elif cnr['id'] in unified_manager.nightly_inactive_nodes:
-            # disabled
-            state = 'disabled'
-            ver = 'nightly'
-        else:
-            # not installed
-            state = 'not-installed'
+            elif cnr['id'] in unified_manager.cnr_inactive_nodes:
+                # disabled
+                state = 'disabled'
+            elif cnr['id'] in unified_manager.nightly_inactive_nodes:
+                # disabled
+                state = 'disabled'
+                ver = 'nightly'
+            else:
+                # not installed
+                state = 'not-installed'
 
-        if ver is None:
-            ver = cnr['latest_version']['version']
+            if ver is None:
+                ver = cnr['latest_version']['version']
 
-        item = dict(author=author, title=title, reference=reference, install_type=install_type,
-                    description=description, state=state, updatable=updatable, version=ver)
+            item = dict(author=author, title=title, reference=reference, install_type=install_type,
+                        description=description, state=state, updatable=updatable, version=ver)
 
-        if active_version:
-            item['active_version'] = active_version
+            if active_version:
+                item['active_version'] = active_version
 
-        if import_fail:
-            item['import-fail'] = True
+            if import_fail:
+                item['import-fail'] = True
 
-        res[cnr_id] = item
+            res[cnr_id] = item
 
     return res
 
@@ -2572,34 +2664,26 @@ async def restore_snapshot(snapshot_path, git_helper_extras=None):
 # check need to migrate
 need_to_migrate = False
 
+
 async def check_need_to_migrate():
     global need_to_migrate
 
+    await unified_manager.reload('cache')
+    await unified_manager.load_nightly(channel='default', mode='cache')
+
     legacy_custom_nodes = []
 
-    try:
-        import folder_paths
-    except:
-        try:
-            sys.path.append(comfy_path)
-            import folder_paths
-        except:
-            raise Exception(f"Invalid COMFYUI_PATH: {comfy_path}")
+    for x in unified_manager.active_nodes.values():
+        if x[0] == 'nightly' and not x[1].endswith('@nightly'):
+            legacy_custom_nodes.append(x[1])
 
-    node_paths = folder_paths.get_folder_paths("custom_nodes")
-    for x in node_paths:
-        subdirs = [d for d in os.listdir(x) if os.path.isdir(os.path.join(x, d))]
-        for subdir in subdirs:
-            if subdir in ['.disabled', '__pycache__']:
-                continue
-
-            if '@' not in subdir:
-                need_to_migrate = True
-                legacy_custom_nodes.append(subdir)
+    for x in unified_manager.nightly_inactive_nodes.values():
+        if not x.endswith('@nightly'):
+            legacy_custom_nodes.append(x)
 
     if len(legacy_custom_nodes) > 0:
         print("\n--------------------- ComfyUI-Manager migration notice --------------------")
         print("The following custom nodes were installed using the old management method and require migration:")
         print(", ".join(legacy_custom_nodes))
         print("---------------------------------------------------------------------------\n")
-
+        need_to_migrate = True

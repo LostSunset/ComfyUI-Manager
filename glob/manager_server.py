@@ -202,8 +202,7 @@ def print_comfyui_version():
 
 
 print_comfyui_version()
-
-
+core.check_invalid_nodes()
 
 
 def setup_environment():
@@ -239,8 +238,12 @@ def get_model_dir(data):
         model_type = data['type']
         if model_type == "checkpoints":
             base_model = folder_paths.folder_names_and_paths["checkpoints"][0][0]
+        elif model_type == "checkpoint":
+            base_model = folder_paths.folder_names_and_paths["checkpoints"][0][0]
         elif model_type == "unclip":
             base_model = folder_paths.folder_names_and_paths["checkpoints"][0][0]
+        elif model_type == "clip":
+            base_model = folder_paths.folder_names_and_paths["clip"][0][0]
         elif model_type == "VAE":
             base_model = folder_paths.folder_names_and_paths["vae"][0][0]
         elif model_type == "lora":
@@ -785,6 +788,12 @@ async def get_disabled_versions(request):
         return web.json_response(versions, content_type='application/json')
 
     return web.Response(status=400)
+
+
+@routes.post("/customnode/reinstall")
+async def reinstall_custom_node(request):
+    await uninstall_custom_node(request)
+    await install_custom_node(request)
 
 
 @routes.post("/customnode/install")
@@ -1700,7 +1709,7 @@ import asyncio
 
 async def default_cache_update():
     async def get_cache(filename):
-        uri = 'https://raw.githubusercontent.com/ltdrdata/ComfyUI-Manager/main/' + filename
+        uri = f"{core.DEFAULT_CHANNEL}/{filename}"
         cache_uri = str(manager_util.simple_hash(uri)) + '_' + filename
         cache_uri = os.path.join(core.cache_dir, cache_uri)
 
@@ -1717,7 +1726,12 @@ async def default_cache_update():
     d = get_cache("alter-list.json")
     e = get_cache("github-stats.json")
 
-    await asyncio.gather(a, b, c, d, e, core.check_need_to_migrate())
+    await asyncio.gather(a, b, c, d, e)
+
+    if not core.get_config()['skip_migration_check']:
+        await core.check_need_to_migrate()
+    else:
+        print("[ComfyUI-Manager] Migration check is skipped...")
 
 
 threading.Thread(target=lambda: asyncio.run(default_cache_update())).start()
