@@ -13,7 +13,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0  # 獲取所有歷史記錄和標籤
-          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}  # 使用個人訪問令牌
+          token: ${{ secrets.GITHUB_TOKEN }}  # 使用默認的 GITHUB_TOKEN
 
       - name: List all branches
         id: list_branches
@@ -53,7 +53,7 @@ jobs:
             git push origin $branch || echo "Failed to push $branch to origin"
           done
         env:
-          GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create version tag
         run: |
