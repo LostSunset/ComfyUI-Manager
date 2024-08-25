@@ -20,6 +20,11 @@ import cm_global
 print(f"### Loading: ComfyUI-Manager ({core.version_str})")
 
 comfy_ui_hash = "-"
+comfyui_tag = None
+
+SECURITY_MESSAGE_MIDDLE_OR_BELOW = f"ERROR: To use this action, a security_level of `middle or below` is required. Please contact the administrator.\nReference: https://github.com/ltdrdata/ComfyUI-Manager#security-policy"
+SECURITY_MESSAGE_NORMAL_MINUS = f"ERROR: To use this feature, you must either set '--listen' to a local IP and set the security level to 'normal-' or lower, or set the security level to 'middle' or 'weak'. Please contact the administrator.\nReference: https://github.com/ltdrdata/ComfyUI-Manager#security-policy"
+SECURITY_MESSAGE_GENERAL = f"ERROR: This installation is not allowed in this security_level. Please contact the administrator.\nReference: https://github.com/ltdrdata/ComfyUI-Manager#security-policy"
 
 routes = PromptServer.instance.routes
 
@@ -153,6 +158,7 @@ def set_double_click_policy(mode):
 
 def print_comfyui_version():
     global comfy_ui_hash
+    global comfyui_tag
 
     is_detached = False
     try:
@@ -167,6 +173,11 @@ def print_comfyui_version():
 
         is_detached = repo.head.is_detached
         current_branch = repo.active_branch.name
+
+        if current_branch == "master":
+            comfyui_tag = repo.git.describe('--tags', repo.heads.main.commit.hexsha)
+            if not comfyui_tag.startswith("v"):
+                comfyui_tag = None
 
         try:
             if core.comfy_ui_commit_datetime.date() < core.comfy_ui_required_commit_datetime.date():
@@ -189,7 +200,10 @@ def print_comfyui_version():
         # <--
 
         if current_branch == "master":
-            print(f"### ComfyUI Revision: {core.comfy_ui_revision} [{comfy_ui_hash[:8]}] | Released on '{core.comfy_ui_commit_datetime.date()}'")
+            if comfyui_tag:
+                print(f"### ComfyUI Version: {comfyui_tag} | Released on '{core.comfy_ui_commit_datetime.date()}'")
+            else:
+                print(f"### ComfyUI Revision: {core.comfy_ui_revision} [{comfy_ui_hash[:8]}] | Released on '{core.comfy_ui_commit_datetime.date()}'")
         else:
             print(f"### ComfyUI Revision: {core.comfy_ui_revision} on '{current_branch}' [{comfy_ui_hash[:8]}] | Released on '{core.comfy_ui_commit_datetime.date()}'")
     except:
@@ -226,7 +240,7 @@ def get_model_dir(data):
     if data['save_path'] != 'default':
         if '..' in data['save_path'] or data['save_path'].startswith('/'):
             print(f"[WARN] '{data['save_path']}' is not allowed path. So it will be saved into 'models/etc'.")
-            base_model = "etc"
+            base_model = os.path.join(folder_paths.models_dir, "etc")
         else:
             if data['save_path'].startswith("custom_nodes"):
                 base_model = os.path.join(core.comfy_path, data['save_path'])
@@ -234,9 +248,7 @@ def get_model_dir(data):
                 base_model = os.path.join(folder_paths.models_dir, data['save_path'])
     else:
         model_type = data['type']
-        if model_type == "checkpoints":
-            base_model = folder_paths.folder_names_and_paths["checkpoints"][0][0]
-        elif model_type == "checkpoint":
+        if model_type == "checkpoints" or model_type == "checkpoint":
             base_model = folder_paths.folder_names_and_paths["checkpoints"][0][0]
         elif model_type == "unclip":
             base_model = folder_paths.folder_names_and_paths["checkpoints"][0][0]
@@ -260,8 +272,14 @@ def get_model_dir(data):
             base_model = folder_paths.folder_names_and_paths["upscale_models"][0][0]
         elif model_type == "embeddings":
             base_model = folder_paths.folder_names_and_paths["embeddings"][0][0]
+        elif model_type == "unet" or model_type == "diffusion_model":
+            if folder_paths.folder_names_and_paths.get("diffusion_models"):
+                base_model = folder_paths.folder_names_and_paths["diffusion_models"][0][1]
+            else:
+                print(f"[ComfyUI-Manager] Your ComfyUI is outdated version.")
+                base_model = folder_paths.folder_names_and_paths["unet"][0][0]  # outdated version
         else:
-            base_model = "etc"
+            base_model = os.path.join(folder_paths.models_dir, "etc")
 
     return base_model
 
@@ -393,7 +411,7 @@ async def fetch_updates(request):
 @routes.get("/customnode/update_all")
 async def update_all(request):
     if not is_allowed_security_level('middle'):
-        print(f"ERROR: To use this action, a security_level of `middle or below` is required. Please contact the administrator.")
+        print(SECURITY_MESSAGE_MIDDLE_OR_BELOW)
         return web.Response(status=403)
 
     try:
@@ -577,7 +595,7 @@ async def get_snapshot_list(request):
 @routes.get("/snapshot/remove")
 async def remove_snapshot(request):
     if not is_allowed_security_level('middle'):
-        print(f"ERROR: To use this action, a security_level of `middle or below` is required. Please contact the administrator.")
+        print(SECURITY_MESSAGE_MIDDLE_OR_BELOW)
         return web.Response(status=403)
     
     try:
@@ -595,7 +613,7 @@ async def remove_snapshot(request):
 @routes.get("/snapshot/restore")
 async def remove_snapshot(request):
     if not is_allowed_security_level('middle'):
-        print(f"ERROR: To use this action, a security_level of `middle or below` is required.  Please contact the administrator.")
+        print(SECURITY_MESSAGE_MIDDLE_OR_BELOW)
         return web.Response(status=403)
     
     try:
@@ -797,7 +815,7 @@ async def reinstall_custom_node(request):
 @routes.post("/customnode/install")
 async def install_custom_node(request):
     if not is_allowed_security_level('middle'):
-        print(f"ERROR: To use this action, a security_level of `middle or below` is required.  Please contact the administrator.")
+        print(SECURITY_MESSAGE_MIDDLE_OR_BELOW)
         return web.Response(status=403)
 
     json_data = await request.json()
@@ -824,7 +842,7 @@ async def install_custom_node(request):
         risky_level = await get_risky_level(json_data['files'])
 
     if not is_allowed_security_level(risky_level):
-        print(f"ERROR: This installation is not allowed in this security_level.  Please contact the administrator.")
+        print(SECURITY_MESSAGE_GENERAL)
         return web.Response(status=404)
 
     node_spec = core.unified_manager.resolve_node_spec(node_spec_str)
@@ -845,7 +863,7 @@ async def install_custom_node(request):
 @routes.post("/customnode/fix")
 async def fix_custom_node(request):
     if not is_allowed_security_level('middle'):
-        print(f"ERROR: To use this action, a security_level of `middle or below` is required. Please contact the administrator.")
+        print(SECURITY_MESSAGE_MIDDLE_OR_BELOW)
         return web.Response(status=403)
 
     json_data = await request.json()
@@ -871,7 +889,7 @@ async def fix_custom_node(request):
 @routes.post("/customnode/install/git_url")
 async def install_custom_node_git_url(request):
     if not is_allowed_security_level('high'):
-        print(f"ERROR: To use this feature, you must either set '--listen' to a local IP and set the security level to 'normal-' or lower, or set the security level to 'middle' or 'weak'. Please contact the administrator.")
+        print(SECURITY_MESSAGE_NORMAL_MINUS)
         return web.Response(status=403)
 
     url = await request.text()
@@ -891,7 +909,7 @@ async def install_custom_node_git_url(request):
 @routes.post("/customnode/install/pip")
 async def install_custom_node_git_url(request):
     if not is_allowed_security_level('high'):
-        print(f"ERROR: To use this feature, you must either set '--listen' to a local IP and set the security level to 'normal-' or lower, or set the security level to 'middle' or 'weak'. Please contact the administrator.")
+        print(SECURITY_MESSAGE_NORMAL_MINUS)
         return web.Response(status=403)
 
     packages = await request.text()
@@ -903,7 +921,7 @@ async def install_custom_node_git_url(request):
 @routes.post("/customnode/uninstall")
 async def uninstall_custom_node(request):
     if not is_allowed_security_level('middle'):
-        print(f"ERROR: To use this action, a security_level of `middle or below` is required.  Please contact the administrator.")
+        print(SECURITY_MESSAGE_MIDDLE_OR_BELOW)
         return web.Response(status=403)
 
     json_data = await request.json()
@@ -930,7 +948,7 @@ async def uninstall_custom_node(request):
 @routes.post("/customnode/update")
 async def update_custom_node(request):
     if not is_allowed_security_level('middle'):
-        print(f"ERROR: To use this action, a security_level of `middle or below` is required. Please contact the administrator.")
+        print(SECURITY_MESSAGE_MIDDLE_OR_BELOW)
         return web.Response(status=403)
 
     json_data = await request.json()
@@ -968,6 +986,30 @@ async def update_comfyui(request):
             return web.Response(status=201)
         else:  # skipped
             return web.Response(status=200)
+    except Exception as e:
+        print(f"ComfyUI update fail: {e}", file=sys.stderr)
+
+    return web.Response(status=400)
+
+
+@routes.get("/comfyui_manager/comfyui_versions")
+async def comfyui_versions(request):
+    try:
+        res, current = core.get_comfyui_versions()
+        return web.json_response({'versions': res, 'current': current}, status=200, content_type='application/json')
+    except Exception as e:
+        print(f"ComfyUI update fail: {e}", file=sys.stderr)
+
+    return web.Response(status=400)
+
+
+@routes.get("/comfyui_manager/comfyui_switch_version")
+async def comfyui_switch_version(request):
+    try:
+        if "ver" in request.rel_url.query:
+            core.switch_comfyui(request.rel_url.query['ver'])
+
+        return web.Response(status=200)
     except Exception as e:
         print(f"ComfyUI update fail: {e}", file=sys.stderr)
 
@@ -1015,7 +1057,7 @@ async def install_model(request):
     model_path = get_model_path(json_data)
 
     if not is_allowed_security_level('middle'):
-        print(f"ERROR: To use this action, a security_level of `middle or below` is required. Please contact the administrator.")
+        print(SECURITY_MESSAGE_MIDDLE_OR_BELOW)
         return web.Response(status=403)
 
     if not json_data['filename'].endswith('.safetensors') and not is_allowed_security_level('high'):
@@ -1028,7 +1070,7 @@ async def install_model(request):
                 break
 
         if not is_belongs_to_whitelist:
-            print(f"ERROR: To use this feature, you must either set '--listen' to a local IP and set the security level to 'normal-' or lower, or set the security level to 'middle' or 'weak'. Please contact the administrator.")
+            print(SECURITY_MESSAGE_NORMAL_MINUS)
             return web.Response(status=403)
 
     res = False
@@ -1078,7 +1120,7 @@ manager_terminal_hook = ManagerTerminalHook()
 @routes.get("/manager/terminal")
 async def terminal_mode(request):
     if not is_allowed_security_level('high'):
-        print(f"ERROR: To use this feature, you must either set '--listen' to a local IP and set the security level to 'normal-' or lower, or set the security level to 'middle' or 'weak'. Please contact the administrator.")
+        print(SECURITY_MESSAGE_NORMAL_MINUS)
         return web.Response(status=403)
 
     if "mode" in request.rel_url.query:
@@ -1198,7 +1240,10 @@ async def get_notice(request):
 
                 if match:
                     markdown_content = match.group(1)
-                    markdown_content += f"<HR>ComfyUI: {core.comfy_ui_revision}[{comfy_ui_hash[:6]}]({core.comfy_ui_commit_datetime.date()})"
+                    if comfyui_tag:
+                        markdown_content += f"<HR>ComfyUI: {comfyui_tag}<BR>Commit Date: {core.comfy_ui_commit_datetime.date()}"
+                    else:
+                        markdown_content += f"<HR>ComfyUI: {core.comfy_ui_revision}[{comfy_ui_hash[:6]}]({core.comfy_ui_commit_datetime.date()})"
                     # markdown_content += f"<BR>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;()"
                     markdown_content += f"<BR>Manager: {core.version_str}"
 
@@ -1220,7 +1265,7 @@ async def get_notice(request):
 @routes.get("/manager/reboot")
 def restart(self):
     if not is_allowed_security_level('middle'):
-        print(f"ERROR: To use this action, a security_level of `middle or below` is required.  Please contact the administrator.")
+        print(SECURITY_MESSAGE_MIDDLE_OR_BELOW)
         return web.Response(status=403)
 
     try:

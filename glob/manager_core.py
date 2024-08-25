@@ -21,7 +21,6 @@ from rich import print
 from packaging import version
 
 import uuid
-import requests
 
 glob_path = os.path.join(os.path.dirname(__file__))  # ComfyUI-Manager/glob
 sys.path.append(glob_path)
@@ -36,24 +35,6 @@ version_str = f"V{version_code[0]}.{version_code[1]}" + (f'.{version_code[2]}' i
 
 
 DEFAULT_CHANNEL = "https://raw.githubusercontent.com/ltdrdata/ComfyUI-Manager/main"
-
-def download_url(url, dest_folder, filename):
-    # Ensure the destination folder exists
-    if not os.path.exists(dest_folder):
-        os.makedirs(dest_folder)
-
-    # Full path to save the file
-    dest_path = os.path.join(dest_folder, filename)
-
-    # Download the file
-    response = requests.get(url, stream=True)
-    if response.status_code == 200:
-        with open(dest_path, 'wb') as file:
-            for chunk in response.iter_content(chunk_size=1024):
-                if chunk:
-                    file.write(chunk)
-    else:
-        raise Exception(f"Failed to download file from {url}")
 
 
 custom_nodes_path = os.path.abspath(os.path.join(comfyui_manager_path, '..'))
@@ -750,6 +731,7 @@ class UnifiedManager:
         else:
             if os.path.exists(requirements_path) and not no_deps:
                 print("Install: pip packages")
+                res = True
                 with open(requirements_path, "r") as requirements_file:
                     for line in requirements_file:
                         package_name = remap_pip_package(line.strip())
@@ -757,13 +739,32 @@ class UnifiedManager:
                             self.processed_install.add(package_name)
                             install_cmd = [sys.executable, "-m", "pip", "install", package_name]
                             if package_name.strip() != "" and not package_name.startswith('#'):
-                                return try_install_script(url, repo_path, install_cmd, instant_execution=instant_execution)
+                                res = res and try_install_script(url, repo_path, install_cmd, instant_execution=instant_execution)
+                return res
 
             if os.path.exists(install_script_path) and install_script_path not in self.processed_install:
                 self.processed_install.add(install_script_path)
                 print(f"Install: install script")
                 install_cmd = [sys.executable, "install.py"]
                 return try_install_script(url, repo_path, install_cmd, instant_execution=instant_execution)
+
+        return True
+
+    def reserve_cnr_switch(self, target, zip_url, from_path, to_path, no_deps):
+        script_path = os.path.join(startup_script_path, "install-scripts.txt")
+        with open(script_path, "a") as file:
+            obj = [target, "#LAZY-CNR-SWITCH-SCRIPT", zip_url, from_path, to_path, no_deps, custom_nodes_path, sys.executable]
+            file.write(f"{obj}\n")
+
+        print(f"Installation reserved: {target}")
+
+        return True
+
+    def reserve_migration(self, moves):
+        script_path = os.path.join(startup_script_path, "install-scripts.txt")
+        with open(script_path, "a") as file:
+            obj = ["", "#LAZY-MIGRATION", moves]
+            file.write(f"{obj}\n")
 
         return True
 
@@ -783,6 +784,44 @@ class UnifiedManager:
         return result
 
     def cnr_switch_version(self, node_id, version_spec=None, instant_execution=False, no_deps=False, return_postinstall=False):
+        if instant_execution:
+            return self.cnr_switch_version_instant(node_id, version_spec, instant_execution, no_deps, return_postinstall)
+        else:
+            return self.cnr_switch_version_lazy(node_id, version_spec, no_deps, return_postinstall)
+
+    def cnr_switch_version_lazy(self, node_id, version_spec=None, no_deps=False, return_postinstall=False):
+        """
+        switch between cnr version (lazy mode)
+        """
+
+        result = ManagedResult('switch-cnr')
+
+        node_info = cnr_utils.install_node(node_id, version_spec)
+        if node_info is None or not node_info.download_url:
+            return result.fail(f'not available node: {node_id}@{version_spec}')
+
+        version_spec = node_info.version
+
+        if self.active_nodes[node_id][0] == version_spec:
+            return ManagedResult('skip').with_msg("Up to date")
+
+        zip_url = node_info.download_url
+        from_path = self.active_nodes[node_id][1]
+        target = f"{node_id}@{version_spec.replace('.', '_')}"
+        to_path = os.path.join(custom_nodes_path, target)
+
+        def postinstall():
+            return self.reserve_cnr_switch(target, zip_url, from_path, to_path, no_deps)
+
+        if return_postinstall:
+            return result.with_postinstall(postinstall)
+        else:
+            if not postinstall():
+                return result.fail(f"Failed to execute install script: {node_id}@{version_spec}")
+
+        return result
+
+    def cnr_switch_version_instant(self, node_id, version_spec=None, instant_execution=True, no_deps=False, return_postinstall=False):
         """
         switch between cnr version
         """
@@ -809,7 +848,9 @@ class UnifiedManager:
         os.remove(download_path)
 
         if extracted is None:
-            shutil.rmtree(install_path)
+            if len(os.listdir(install_path)) == 0:
+                shutil.rmtree(install_path)
+
             return result.fail(f'Empty archive file: {node_id}@{version_spec}')
 
         # 3. calculate garbage files (.tracking - extracted)
@@ -1284,48 +1325,18 @@ class UnifiedManager:
         await self.get_custom_nodes('default', 'cache')
 
         print(f"Migration: STAGE 1")
+        moves = []
+
         # migrate nightly inactive
-        fixes = {}
         for x, v in self.nightly_inactive_nodes.items():
             if v.endswith('@nightly'):
                 continue
 
             new_path = os.path.join(custom_nodes_path, '.disabled', f"{x}@nightly")
-            shutil.move(v, new_path)
-            fixes[x] = new_path
-
-        self.nightly_inactive_nodes.update(fixes)
-
-        # NOTE: Don't migration unknown node - keep original name as possible
-        # print(f"Migration: STAGE 2")
-        # # migrate unknown inactive
-        # fixes = {}
-        # for x, v in self.unknown_inactive_nodes.items():
-        #     if v[1].endswith('@unknown'):
-        #         continue
-        #
-        #     new_path = os.path.join(custom_nodes_path, '.disabled', f"{x}@unknown")
-        #     shutil.move(v[1], new_path)
-        #     fixes[x] = v[0], new_path
-        #
-        # self.unknown_inactive_nodes.update(fixes)
-
-        # print(f"Migration: STAGE 3")
-        # migrate unknown active nodes
-        # fixes = {}
-        # for x, v in self.unknown_active_nodes.items():
-        #     if v[1].endswith('@unknown'):
-        #         continue
-        #
-        #     new_path = os.path.join(custom_nodes_path, f"{x}@unknown")
-        #     shutil.move(v[1], new_path)
-        #     fixes[x] = v[0], new_path
-        #
-        # self.unknown_active_nodes.update(fixes)
+            moves.append((v, new_path))
 
         print(f"Migration: STAGE 2")
         # migrate active nodes
-        fixes = {}
         for x, v in self.active_nodes.items():
             if v[0] not in ['nightly']:
                 continue
@@ -1334,12 +1345,11 @@ class UnifiedManager:
                 continue
 
             new_path = os.path.join(custom_nodes_path, f"{x}@nightly")
-            shutil.move(v[1], new_path)
-            fixes[x] = v[0], new_path
+            moves.append((v[1], new_path))
 
-        self.active_nodes.update(fixes)
+        self.reserve_migration(moves)
 
-        print(f"DONE")
+        print(f"DONE (Migration reserved)")
 
 
 unified_manager = UnifiedManager()
@@ -1680,6 +1690,7 @@ def git_repo_update_check_with(path, do_fetch=False, do_update=False, no_deps=Fa
 
         if do_update:
             if repo.is_dirty():
+                print(f"STASH: '{path}' is dirty.")
                 repo.git.stash()
 
             if f'{remote_name}/{branch_name}' not in repo.refs:
@@ -1836,6 +1847,7 @@ def git_pull(path):
         repo = git.Repo(path)
 
         if repo.is_dirty():
+            print(f"STASH: '{path}' is dirty.")
             repo.git.stash()
 
         if repo.head.is_detached:
@@ -2690,3 +2702,41 @@ async def check_need_to_migrate():
         print(", ".join(legacy_custom_nodes))
         print("---------------------------------------------------------------------------\n")
         need_to_migrate = True
+
+
+def get_comfyui_versions():
+    repo = git.Repo(comfy_path)
+    versions = [x.name for x in repo.tags if x.name.startswith('v')]
+    versions.reverse()  # nearest tag
+
+    versions = versions[:4]
+
+    current_tag = repo.git.describe('--tags')
+
+    if current_tag not in versions:
+        versions = sorted(versions + [current_tag], reverse=True)
+        versions = versions[:4]
+
+    main_branch = repo.heads.main
+    latest_commit = main_branch.commit
+    latest_tag = repo.git.describe('--tags', latest_commit.hexsha)
+
+    if latest_tag != versions[0]:
+        versions.insert(0, 'nightly')
+    else:
+        versions[0] = 'nightly'
+        current_tag = 'nightly'
+
+    return versions, current_tag
+
+
+def switch_comfyui(tag):
+    repo = git.Repo(comfy_path)
+
+    if tag == 'nightly':
+        repo.git.checkout('main')
+        repo.remotes.origin.pull()
+        print("[ComfyUI-Manager] ComfyUI version is switched to the latest 'main' version")
+    else:
+        repo.git.checkout(tag)
+        print(f"[ComfyUI-Manager] ComfyUI version is switched to '{tag}'")
