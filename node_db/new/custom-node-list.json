@@ -11,6 +11,79 @@
         
         
         {
+            "author": "nicehero",
+            "title": "comfyui-SegGPT",
+            "reference": "https://github.com/nicehero/comfyui-SegGPT",
+            "files": [
+                "https://github.com/nicehero/comfyui-SegGPT"
+            ],
+            "install_type": "git-clone",
+            "description": "We release the [a/SegGPT model](https://huggingface.co/BAAI/SegGPT/blob/main/seggpt_vit_large.pth) and inference code for segmentation everything, as well as some example images and videos.\nNOTE: [a/SegGPT: Segmenting Everything In Context](https://huggingface.co/BAAI/SegGPT)"
+        },
+        {
+            "author": "sakura1bgx",
+            "title": "ComfyUI_FlipStreamViewer",
+            "reference": "https://github.com/sakura1bgx/ComfyUI_FlipStreamViewer",
+            "files": [
+                "https://github.com/sakura1bgx/ComfyUI_FlipStreamViewer"
+            ],
+            "install_type": "git-clone",
+            "description": "ComfyUI_FlipStreamViewer is a tool that provides a viewer interface for flipping images with frame interpolation, allowing you to watch high-fidelity pseudo-videos without needing AnimateDiff."
+        },
+        {
+            "author": "NakamuraShippo",
+            "title": "ComfyUI_mittimiLoadPreset",
+            "id": "comfyui-mittimi-load-preset",
+            "reference": "https://github.com/mittimi/ComfyUI_mittimiLoadPreset",
+            "files": [
+                "https://github.com/mittimi/ComfyUI_mittimiLoadPreset"
+            ],
+            "install_type": "git-clone",
+            "description": "The system selects and loads preset."
+        },
+        {
+            "author": "RodrigoSKohl",
+            "title": "ComfyUI-Panoramic-ImgStitcher",
+            "reference": "https://github.com/RodrigoSKohl/ComfyUI-Panoramic-ImgStitcher",
+            "files": [
+                "https://github.com/RodrigoSKohl/ComfyUI-Panoramic-ImgStitcher"
+            ],
+            "install_type": "git-clone",
+            "description": "Nodeds:Panoramic Image Stitcher"
+        },
+        {
+            "author": "logtd",
+            "title": "ComfyUI-SSREncoder",
+            "id": "ssrencoder",
+            "reference": "https://github.com/logtd/ComfyUI-SSREncoder",
+            "files": [
+                "https://github.com/logtd/ComfyUI-SSREncoder"
+            ],
+            "install_type": "git-clone",
+            "description": "ComfyUI Nodes to use [a/SSR Encoder:Encoding Selective Subject Representation for Subject-Driven Generation](https://github.com/Xiaojiu-z/SSR_Encoder)."
+        },
+        {
+            "author": "logtd",
+            "title": "ComfyUI-SeeCoder",
+            "id": "seecoder-logtd",
+            "reference": "https://github.com/logtd/ComfyUI-SeeCoder",
+            "files": [
+                "https://github.com/logtd/ComfyUI-SeeCoder"
+            ],
+            "install_type": "git-clone",
+            "description": "ComfyUI nodes to use the SeeCoder from [a/Prompt-Free-Diffusion](https://github.com/SHI-Labs/Prompt-Free-Diffusion)"
+        },
+        {
+            "author": "nux1111",
+            "title": "ComfyUI_NetDist_Plus",
+            "reference": "https://github.com/nux1111/ComfyUI_NetDist_Plus",
+            "files": [
+                "https://github.com/nux1111/ComfyUI_NetDist_Plus"
+            ],
+            "install_type": "git-clone",
+            "description": "Run ComfyUI workflows on multiple local GPUs/networked machines with options to edit the json values within comfyui.\nOriginal repo: [a/city96/ComfyUI_NetDist](https://github.com/city96/ComfyUI_NetDist)"
+        },
+        {
             "author": "daxcay",
             "title": "ComfyUI-Nexus",
             "reference": "https://github.com/daxcay/ComfyUI-Nexus",
@@ -618,99 +691,6 @@
             ],
             "install_type": "git-clone",
             "description": "These nodes include my wrapper for the original diffusers pipeline, as well as work in progress native ComfyUI implementation.\nFor the diffusers wrapper models should be downloaded automatically, for the native version you can get the unet [a/here](https://huggingface.co/Kijai/ControlNeXt-SVD-V2-Comfy/blob/main/controlnext-svd_v2-unet-fp16_converted.safetensors)."
-        },
-        {
-            "author": "Isi-dev",
-            "title": "UniAnimate Nodes for ComfyUI",
-            "id": "comfyuiunianimatenodes",
-            "reference": "https://github.com/Isi-dev/ComfyUI-UniAnimate-W",
-            "files": [
-                "https://github.com/Isi-dev/ComfyUI-UniAnimate-W"
-            ],
-            "install_type": "git-clone",
-            "description": "These are nodes to animate an image with a reference video using UniAnimate. [w/Name conflict with AIFSH/ComfyUI-UniAnimate. Cannot install simulatenously.]"
-        },
-        {
-            "author": "dadoirie",
-            "title": "ComfyUI_Dados_Nodes",
-            "reference": "https://github.com/dadoirie/ComfyUI_Dados_Nodes",
-            "files": [
-                "https://github.com/dadoirie/ComfyUI_Dados_Nodes"
-            ],
-            "install_type": "git-clone",
-            "description": "ComfyUI_Dados_Nodes is a collection of custom nodes for ComfyUI, designed to enhance functionality and provide integration with various services, including Pinterest. This privacy policy explains how these nodes handle user data.\nNOTE: [a/privacy_policy](https://github.com/dadoirie/ComfyUI_Dados_Nodes/blob/master/privacy_policy.md)"
-        },
-        {
-            "author": "leeguandong",
-            "title": "ComfyUI nodes to use VideoEditing",
-            "reference": "https://github.com/leeguandong/ComfyUI_VideoEditing",
-            "files": [
-                "https://github.com/leeguandong/ComfyUI_VideoEditing"
-            ],
-            "install_type": "git-clone",
-            "description": "Nodes:Load Video to Images, Image to Canny, ControlNet Model Loader, VEDit Model Loader, VEdit Sampler. [a/https://github.com/SingleZombie/DiffusersExample/tree/main/ReplaceAttn](https://github.com/SingleZombie/DiffusersExample/tree/main/ReplaceAttn)"
-        },
-        {
-            "author": "shinich39",
-            "title": " connect-from-afar",
-            "reference": "https://github.com/shinich39/comfyui-connect-from-afar",
-            "files": [
-                "https://github.com/shinich39/comfyui-connect-from-afar"
-            ],
-            "install_type": "git-clone",
-            "description": "Connect a new link from out of screen."
-        },
-        {
-            "author": "StartHua",
-            "title": "Comfyui_CXH_joy_caption",
-            "reference": "https://github.com/StartHua/Comfyui_CXH_joy_caption",
-            "files": [
-                "https://github.com/StartHua/Comfyui_CXH_joy_caption"
-            ],
-            "install_type": "git-clone",
-            "description": "Nodes:Joy_caption_load, Joy_caption"
-        },
-        {
-            "author": "fanfanfan",
-            "title": "chinese_clip_encode",
-            "id": "chinese_clip_encode",
-            "reference": "https://github.com/yuan199696/chinese_clip_encode",
-            "files": [
-                "https://github.com/yuan199696/chinese_clip_encode"
-            ],
-            "install_type": "git-clone",
-            "description": "Support input of Chinese prompts."
-        },
-        {
-            "author": "ChrisColeTech",
-            "title": "ComfyUI-Line-counter",
-            "reference": "https://github.com/ChrisColeTech/ComfyUI-Line-counter",
-            "files": [
-                "https://github.com/ChrisColeTech/ComfyUI-Line-counter"
-            ],
-            "install_type": "git-clone",
-            "description": "Custom node to count the number of lines in a text file"
-        },
-        {
-            "author": "Fuou Marinas",
-            "title": "ComfyUI-StyleTransferPlus",
-            "id": "styletransferplus",
-            "reference": "https://github.com/FuouM/ComfyUI-StyleTransferPlus",
-            "files": [
-                "https://github.com/FuouM/ComfyUI-StyleTransferPlus"
-            ],
-            "install_type": "git-clone",
-            "description": "Nodes:Neural Neighbor, CAST, EFDM, MicroAST, Coral Color Transfer."
-        },
-        {
-            "author": "jstit",
-            "title": "ComfyUI-HeadshotPro",
-            "reference": "https://github.com/HeadshotPro/ComfyUI-HeadshotPro",
-            "files": [
-                "https://github.com/HeadshotPro/ComfyUI-HeadshotPro"
-            ],
-            "install_type": "git-clone",
-            "description": "Nodes:Download Dreambooth Checkpoint, Get Random Value From List, Load Canny Pose Face, Transparent to White Background, Download Flux Lora."
         }
     ]
 }

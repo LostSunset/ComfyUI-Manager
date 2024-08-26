@@ -4534,6 +4534,14 @@
             "title_aux": "ComfyUI-Latte"
         }
     ],
+    "https://github.com/RodrigoSKohl/ComfyUI-Panoramic-ImgStitcher": [
+        [
+            "Image Stitching Node"
+        ],
+        {
+            "title_aux": "ComfyUI-Panoramic-ImgStitcher"
+        }
+    ],
     "https://github.com/RomanKuschanow/ComfyUI-Advanced-Latent-Control": [
         [
             "LatentAddTransform",
@@ -4726,6 +4734,8 @@
             "RVC-Studio.LoadAudio",
             "RVC-Studio.PreviewAudio",
             "RVCNode",
+            "RVCProcessDatasetNode",
+            "RVCTrainModelNode",
             "SimpleMathNode",
             "SliceNode",
             "SortImagesNode",
@@ -7064,17 +7074,24 @@
     ],
     "https://github.com/akatz-ai/ComfyUI-AKatz-Nodes": [
         [
+            "AK_AdjustListSize",
             "AK_AnimatedDilationMaskLinear",
             "AK_AudioreactiveDilationMask",
             "AK_AudioreactiveDynamicDilationMask",
+            "AK_BinaryAmplitudeGate",
             "AK_ConvertAudioToSaltAudio",
+            "AK_ConvertListToFloatList",
             "AK_ConvertSaltAudioToAudio",
             "AK_IPAdapterCustomWeights",
-            "AK_NormalizeMaskImage"
+            "AK_LagChop",
+            "AK_ListToNumpyFloatArray",
+            "AK_NormalizeMaskImage",
+            "AK_RescaleFloatList",
+            "AK_VideoSpeedAdjust"
         ],
         {
             "author": "akatz",
-            "description": "Custom node pack for nodes I use in my workflows. Includes Dilation mask nodes for animating subject masks.",
+            "description": "Custom node pack for nodes I use in my workflows.",
             "nickname": "Akatz Custom Nodes",
             "title": "Akatz Custom Nodes",
             "title_aux": "Akatz Custom Nodes"
@@ -8872,6 +8889,7 @@
             "LayerUtility: If",
             "LayerUtility: ImageAutoCrop",
             "LayerUtility: ImageAutoCrop V2",
+            "LayerUtility: ImageAutoCrop V3",
             "LayerUtility: ImageBlend",
             "LayerUtility: ImageBlend V2",
             "LayerUtility: ImageBlendAdvance",
@@ -8891,6 +8909,7 @@
             "LayerUtility: ImageScaleRestore",
             "LayerUtility: ImageScaleRestore V2",
             "LayerUtility: ImageShift",
+            "LayerUtility: ImageTaggerSave",
             "LayerUtility: Integer",
             "LayerUtility: LaMa",
             "LayerUtility: LayerImageTransform",
@@ -9114,7 +9133,8 @@
             "CLIPLoaderGGUF",
             "DualCLIPLoaderGGUF",
             "TripleCLIPLoaderGGUF",
-            "UnetLoaderGGUF"
+            "UnetLoaderGGUF",
+            "UnetLoaderGGUFAdvanced"
         ],
         {
             "title_aux": "ComfyUI-GGUF"
@@ -9799,6 +9819,7 @@
             "SimpleMath+",
             "SimpleMathBoolean+",
             "SimpleMathCondition+",
+            "SimpleMathDual+",
             "SimpleMathFloat+",
             "SimpleMathInt+",
             "SimpleMathPercent+",
@@ -11829,10 +11850,12 @@
     ],
     "https://github.com/heshengtao/comfyui_LLM_schools": [
         [
-            "CausalLM_loader",
+            "CausalLM_trainer",
+            "IA3_Arguments",
             "LLM_Arguments",
-            "LLM_Trainer",
-            "LLM_data_collator",
+            "Lora_or_adapter_Arguments",
+            "P_or_Prompt_Arguments",
+            "Prefix_Arguments",
             "download_dataset",
             "get_dataset_name",
             "split_dataset"
@@ -12866,6 +12889,7 @@
             "Bjornulf_CustomStringType",
             "Bjornulf_GrayscaleTransform",
             "Bjornulf_GreenScreenToTransparency",
+            "Bjornulf_ImageMaskCutter",
             "Bjornulf_LoadImageWithTransparency",
             "Bjornulf_LoopAllLines",
             "Bjornulf_LoopBasicBatch",
@@ -14174,6 +14198,27 @@
             "title_aux": "ComfyUI-SEGAttention"
         }
     ],
+    "https://github.com/logtd/ComfyUI-SSREncoder": [
+        [
+            "ApplySSR",
+            "EncodeSSRQuery",
+            "LoadSSRAligner",
+            "LoadSSRAttention"
+        ],
+        {
+            "title_aux": "ComfyUI-SSREncoder"
+        }
+    ],
+    "https://github.com/logtd/ComfyUI-SeeCoder": [
+        [
+            "LoadSeeCoder",
+            "LoadSeeCoderUncond",
+            "SeecoderEncode"
+        ],
+        {
+            "title_aux": "ComfyUI-SeeCoder"
+        }
+    ],
     "https://github.com/logtd/ComfyUI-TrackingNodes": [
         [
             "OpenPoseTrackerNode",
@@ -15152,6 +15197,20 @@
             "title_aux": "MLTask_ComfyUI"
         }
     ],
+    "https://github.com/mittimi/ComfyUI_mittimiLoadPreset": [
+        [
+            "LoadAndSettingParametersMittimi01",
+            "LoadPresetForSettingParametersMittimi01",
+            "SettingParametersMittimi01"
+        ],
+        {
+            "author": "mittimi",
+            "description": "The system selects and loads presets that have been saved in advance.",
+            "nickname": "mittimiLoadPreset",
+            "title": "mittimiLoadPreset",
+            "title_aux": "ComfyUI_mittimiLoadPreset"
+        }
+    ],
     "https://github.com/modelscope/comfyscope": [
         [
             "DashScopeFLUXAPI"
@@ -15289,6 +15348,14 @@
         ],
         {
             "title_aux": "ComfyUI SAM2(Segment Anything 2)"
+        }
+    ],
+    "https://github.com/nicehero/comfyui-SegGPT": [
+        [
+            "SegGPT"
+        ],
+        {
+            "title_aux": "comfyui-SegGPT"
         }
     ],
     "https://github.com/nickve28/ComfyUI-Nich-Utils": [
@@ -15517,6 +15584,40 @@
             "nickname": "BrushName nodes",
             "title": "BrushNet",
             "title_aux": "BrushNet"
+        }
+    ],
+    "https://github.com/nux1111/ComfyUI_NetDist_Plus": [
+        [
+            "CombineImageBatch",
+            "ConditioningFromBase64(Nux)",
+            "ConditioningToBase64(Nux)",
+            "ExtractBase64FromImage(Nux)",
+            "ExtractBase64FromImageUpload(Nux)",
+            "FetchRemote",
+            "FetchRemoteWithExtras(Nux)",
+            "LatentToBase64(Nux)",
+            "LoadCurrentWorkflowJSON",
+            "LoadDiskWorkflowJSON",
+            "LoadImageUrl",
+            "LoadLatentFromBase64(Nux)",
+            "LoadLatentNumpy",
+            "LoadLatentUrl",
+            "LoadWorkflowJSON",
+            "RemoteApplyValues(Nux)",
+            "RemoteApplyValuesMulti(Nux)",
+            "RemoteChainEnd",
+            "RemoteChainStart",
+            "RemoteChainStart(Nux)",
+            "RemoteQueueSimple",
+            "RemoteQueueSimple(Nux)",
+            "RemoteQueueWorker",
+            "SaveDiskWorkflowJSON",
+            "SaveImageUrl",
+            "SaveImageWithBase64(Nux)",
+            "SaveLatentNumpy"
+        ],
+        {
+            "title_aux": "ComfyUI_NetDist_Plus"
         }
     ],
     "https://github.com/okgo4/ComfyUI-Mosaic-Mask": [
@@ -15781,7 +15882,9 @@
         [
             "PaintbyExampleAdvanced",
             "PaintbyExampleGen",
-            "PaintbyExampleSimple"
+            "PaintbyExampleSimple",
+            "PaintbyIchimatsu",
+            "PaintbySingleColor"
         ],
         {
             "title_aux": "paint-by-example @ ComfyUI"
@@ -16345,6 +16448,17 @@
         ],
         {
             "title_aux": "Suplex Misc ComfyUI Nodes"
+        }
+    ],
+    "https://github.com/sakura1bgx/ComfyUI_FlipStreamViewer": [
+        [
+            "FlipStreamLoader",
+            "FlipStreamOption",
+            "FlipStreamUpdate",
+            "FlipStreamViewer"
+        ],
+        {
+            "title_aux": "ComfyUI_FlipStreamViewer"
         }
     ],
     "https://github.com/sdfxai/SDFXBridgeForComfyUI": [
@@ -17402,6 +17516,7 @@
             "FoxMaskAddMask",
             "FoxMaskAndMask",
             "FoxMaskSubMask",
+            "FoxOutlineMask",
             "FoxPreviewMask",
             "FoxPrimitiveText",
             "FoxRegTextFind",
@@ -17879,6 +17994,8 @@
         [
             "ChannelSelector",
             "DownloadAndLoadFlorence2Model",
+            "FalDifferentialDiffusion",
+            "FalDiffusion",
             "FetchFromRedis",
             "FetchJsonFromSurreal",
             "Florence2Run",
@@ -18512,8 +18629,11 @@
     ],
     "https://github.com/yhayano-ponotech/ComfyUI-Fal-API-Flux": [
         [
+            "FalAPIFluxControlNetConfigNode",
+            "FalAPIFluxControlNetUnionConfigNode",
             "FalAPIFluxLoraConfigNode",
-            "FalAPIFluxNode"
+            "FalAPIFluxNode",
+            "FalAPIFluxNodeWithControlNet"
         ],
         {
             "title_aux": "ComfyUI-Fal-API-Flux"
