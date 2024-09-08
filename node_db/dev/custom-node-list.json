@@ -11,7 +11,66 @@
 
 
 
-
+        {
+            "author": "LyazS",
+            "title": "comfyui-nettools",
+            "reference": "https://github.com/LyazS/comfyui-nettools",
+            "files": [
+                "https://github.com/LyazS/comfyui-nettools"
+            ],
+            "install_type": "git-clone",
+            "description": "rewrite from [a/https://github.com/Acly/comfyui-tooling-nodes](https://github.com/Acly/comfyui-tooling-nodes)"
+        },
+        {
+            "author": "lu64k",
+            "title": "SK-Nodes",
+            "reference": "https://github.com/lu64k/SK-Nodes",
+            "files": [
+                "https://github.com/lu64k/SK-Nodes"
+            ],
+            "install_type": "git-clone",
+            "description": "NODES:image select, Load AnyLLM, Ask LLM, OpenAI DAlle Node, SK Text_String, SK Random File Name"
+        },
+        {
+            "author": "Kinglord",
+            "title": "ComfyUI_Prompt_Gallery [WIP]",
+            "reference": "https://github.com/Kinglord/ComfyUI_Prompt_Gallery",
+            "files": [
+                "https://github.com/Kinglord/ComfyUI_Prompt_Gallery"
+            ],
+            "install_type": "git-clone",
+            "description": "A custom node that adds a UI element to the sidebar that allows for quick and easy navigation of images to aid in building prompts."
+        },
+        {
+            "author": "Cardoso-topdev",
+            "title": "comfyui_meshanything_v1 [WIP]",
+            "reference": "https://github.com/Cardoso-topdev/comfyui_meshanything_v1",
+            "files": [
+                "https://github.com/Cardoso-topdev/comfyui_meshanything_v1"
+            ],
+            "install_type": "git-clone",
+            "description": "MeshAnything V2: Artist-Created Mesh Generation With Adjacent Mesh Tokenization"
+        },
+        {
+            "author": "Lilien86",
+            "title": "lauger NodePack for ComfyUI",
+            "reference": "https://github.com/Lilien86/lauger_NP_comfyui",
+            "files": [
+                "https://github.com/Lilien86/lauger_NP_comfyui"
+            ],
+            "install_type": "git-clone",
+            "description": "Hey everyone it's my Custom ComfyUI Nodes Pack repository! This project contains a collection of custom nodes designed to extend the functionality of ComfyUI. These nodes offer capabilities and new creative possibilities, especially in the realms of latent space manipulation and interpolation.\nNOTE: The files in the repo are not organized."
+        },
+        {
+            "author": "haodman",
+            "title": "ComfyUI_Rain",
+            "reference": "https://github.com/haodman/ComfyUI_Rain",
+            "files": [
+                "https://github.com/haodman/ComfyUI_Rain"
+            ],
+            "install_type": "git-clone",
+            "description": "NODES:Rain_ValueSwitch, Rain_Math, Rain_IntToFloat, Rain_ImageSize."
+        },
         {
             "author": "bananasss00",
             "title": "Comfyui-PyExec [UNSAFE]",
@@ -122,16 +181,6 @@
             ],
             "install_type": "git-clone",
             "description": "ComfyUI-textools is a collection of custom nodes designed for use with ComfyUI. These nodes enhance text processing capabilities, including applying rich text overlays on images and cleaning file names for safe and consistent file management.\nNOTE: The files in the repo are not organized."
-        },
-        {
-            "author": "VykosX",
-            "title": "ControlFlowUtils [UNSTABLE]",
-            "reference": "https://github.com/VykosX/ControlFlowUtils",
-            "files": [
-                "https://github.com/VykosX/ControlFlowUtils"
-            ],
-            "install_type": "git-clone",
-            "description": "Custom nodes for ComfyUI to enable flow control with advanced loops, conditional branching, logic operations and several other nifty utilities to enhance your ComfyUI workflows"
         },
         {
             "author": "shinich39",
