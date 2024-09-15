@@ -325,7 +325,7 @@ const pageHtml = `
 <div class="cn-manager-selection"></div>
 <div class="cn-manager-message"></div>
 <div class="cn-manager-footer">
-	<button class="cn-manager-close">Close</button>
+	<button class="cn-manager-back">◀ Back</button>
 	<button class="cn-manager-restart">Restart</button>
 	<div class="cn-flex-auto"></div>
 	<button class="cn-manager-check-update">Check Update</button>
@@ -338,6 +338,7 @@ const ShowMode = {
 	NORMAL: "Normal",
 	UPDATE: "Update",
 	MISSING: "Missing",
+	FAVORITES: "Favorites",
 	ALTERNATIVES: "Alternatives"
 };
 
@@ -553,6 +554,10 @@ export class CustomNodesManager {
 			value: ShowMode.MISSING,
 			hasData: false
 		}, {
+			label: "Favorites",
+			value: ShowMode.FAVORITES,
+			hasData: false
+		}, {
 			label: "Alternatives of A1111",
 			value: ShowMode.ALTERNATIVES,
 			hasData: false
@@ -633,7 +638,7 @@ export class CustomNodesManager {
 		}
 
 		if (rowItem?.title === "ComfyUI-Manager") {
-			installGroups.enabled = installGroups.enabled.filter(it => it !== "disable");
+			installGroups.enabled = installGroups.enabled.filter(it => it !== "disable" && it !== "uninstall" && it !== "switch");
 		}
 
 		let list = installGroups[action];
@@ -715,8 +720,11 @@ export class CustomNodesManager {
 				}
 			},
 
-			".cn-manager-close": {
-				click: (e) => this.close()
+			".cn-manager-back": {
+				click: (e) => {
+				    this.close()
+				    manager_instance.show();
+				}
 			},
 
 			".cn-manager-restart": {
@@ -775,13 +783,9 @@ export class CustomNodesManager {
 		
 		let prevViewRowsLength = -1;
 		grid.bind('onUpdated', (e, d) => {
-
 			const viewRows = grid.viewRows;
-			if (viewRows.length !== prevViewRowsLength) {
-				prevViewRowsLength = viewRows.length;
-				this.showStatus(`${prevViewRowsLength.toLocaleString()} custom nodes`);
-			}
-
+            prevViewRowsLength = viewRows.length;
+            this.showStatus(`${prevViewRowsLength.toLocaleString()} custom nodes`);
 		});
 
 		grid.bind('onSelectChanged', (e, changes) => {
@@ -1461,8 +1465,18 @@ export class CustomNodesManager {
 		return hashMap;
 	}
 
-	async getAlternatives() {
+	async getFavorites() {
+		const hashMap = {};
+		for(let k in this.custom_nodes) {
+			let item = this.custom_nodes[k];
+			if(item.is_favorite)
+			    hashMap[item.hash] = true;
+		}
 
+		return hashMap;
+	}
+
+	async getAlternatives() {
 		const mode = manager_instance.datasrc_combo.value;
 		this.showStatus(`Loading alternatives (${mode}) ...`);
 		const res = await fetchData(`/customnode/alternatives?mode=${mode}`);
@@ -1545,6 +1559,8 @@ export class CustomNodesManager {
 				hashMap = await this.getMissingNodes();
 			} else if(this.show_mode == ShowMode.ALTERNATIVES) {
 				hashMap = await this.getAlternatives();
+			} else if(this.show_mode == ShowMode.FAVORITES) {
+				hashMap = await this.getFavorites();
 			}
 			filterItem.hashMap = hashMap;
 			filterItem.hasData = true;

@@ -11,6 +11,77 @@
 
 
 
+
+        {
+            "author": "AlexXi19",
+            "title": "ComfyUI-OpenAINode",
+            "reference": "https://github.com/AlexXi19/ComfyUI-OpenAINode",
+            "files": [
+                "https://github.com/AlexXi19/ComfyUI-OpenAINode"
+            ],
+            "install_type": "git-clone",
+            "description": "ComfyUI-OpenAINode is a user-friendly node that serves as an interface to the OpenAI Models.[w/Repo name conflict with Electrofried/ComfyUI-OpenAINode]"
+        },
+        {
+            "author": "hgabha",
+            "title": "WWAA-CustomNodes",
+            "reference": "https://github.com/hgabha/WWAA-CustomNodes",
+            "files": [
+                "https://github.com/hgabha/WWAA-CustomNodes"
+            ],
+            "install_type": "git-clone",
+            "description": "Custom Nodes for ComfyUI made by the team at [a/WeirdWonderfulAI.Art](https://weirdwonderfulai.art/) These are developed based on the needs where there was a gap to make our workflows better. You are welcome to use it as you see fit."
+        },
+        {
+            "author": "IgPoly",
+            "title": "ComfyUI-igTools",
+            "reference": "https://github.com/IgPoly/ComfyUI-igTools",
+            "files": [
+                "https://github.com/IgPoly/ComfyUI-igTools"
+            ],
+            "install_type": "git-clone",
+            "description": "NODES:IGT Simple Tiles Calc"
+        },
+        {
+            "author": "jazhang00",
+            "title": "ComfyUI Node for Slicedit",
+            "reference": "https://github.com/jazhang00/ComfyUI-Slicedit",
+            "files": [
+                "https://github.com/jazhang00/ComfyUI-Slicedit"
+            ],
+            "install_type": "git-clone",
+            "description": "Slicedit main page: [a/https://matankleiner.github.io/slicedit/](https://matankleiner.github.io/slicedit/). Use Slicedit with ComfyUI."
+        },
+        {
+            "author": "Ryota",
+            "title": "Ryota's Nodes",
+            "reference": "https://github.com/lichenhao/Comfyui_Ryota",
+            "files": [
+                "https://github.com/lichenhao/Comfyui_Ryota"
+            ],
+            "install_type": "git-clone",
+            "description": "NODES:CombineTexts, FontLoader, DrawText, TxtFileLoader, SaveTxtFile, SwitchModelClip, SwitchAnyInputs, Reroute2, Reroute3"
+        },
+        {
+            "author": "Soppatorsk",
+            "title": "comfyui_img_to_ascii [WIP]",
+            "reference": "https://github.com/Soppatorsk/comfyui_img_to_ascii",
+            "files": [
+                "https://github.com/Soppatorsk/comfyui_img_to_ascii"
+            ],
+            "install_type": "git-clone",
+            "description": "Basic functionality for converting an image to ASCII art returned as a png image based on [a/ascii_magic](https://github.com/LeandroBarone/python-ascii_magic)"
+        },
+        {
+            "author": "LyazS",
+            "title": "comfyui-nettools",
+            "reference": "https://github.com/LyazS/comfyui-nettools",
+            "files": [
+                "https://github.com/LyazS/comfyui-nettools"
+            ],
+            "install_type": "git-clone",
+            "description": "rewrite from [a/https://github.com/Acly/comfyui-tooling-nodes](https://github.com/Acly/comfyui-tooling-nodes)"
+        },
         {
             "author": "lu64k",
             "title": "SK-Nodes",
@@ -20,26 +91,6 @@
             ],
             "install_type": "git-clone",
             "description": "NODES:image select, Load AnyLLM, Ask LLM, OpenAI DAlle Node, SK Text_String, SK Random File Name"
-        },
-        {
-            "author": "hzchet",
-            "title": "ComfyUI_QueueGeneration",
-            "reference": "https://github.com/hzchet/ComfyUI_QueueGeneration",
-            "files": [
-                "https://github.com/hzchet/ComfyUI_QueueGeneration"
-            ],
-            "install_type": "git-clone",
-            "description": "NODES:Queue Img2Vid Generation"
-        },
-        {
-            "author": "Kinglord",
-            "title": "ComfyUI_Prompt_Gallery [WIP]",
-            "reference": "https://github.com/Kinglord/ComfyUI_Prompt_Gallery",
-            "files": [
-                "https://github.com/Kinglord/ComfyUI_Prompt_Gallery"
-            ],
-            "install_type": "git-clone",
-            "description": "A custom node that adds a UI element to the sidebar that allows for quick and easy navigation of images to aid in building prompts."
         },
         {
             "author": "Cardoso-topdev",
@@ -152,16 +203,6 @@
             "description": "NODES:LoadAudioUrl, VideoWatermark"
         },
         {
-            "author": "jinljin",
-            "title": "ComfyUI-Talking-Head [WIP]",
-            "reference": "https://github.com/jinljin/ComfyUI-ElevenlabsAndDID-Combine",
-            "files": [
-                "https://github.com/jinljin/ComfyUI-ElevenlabsAndDID-Combine"
-            ],
-            "install_type": "git-clone",
-            "description": "ComfyUI-Talking-Head"
-        },
-        {
             "author": "zhongpei",
             "title": "Comfyui_image2prompt",
             "id": "img2prompt",
@@ -181,16 +222,6 @@
             ],
             "install_type": "git-clone",
             "description": "ComfyUI-textools is a collection of custom nodes designed for use with ComfyUI. These nodes enhance text processing capabilities, including applying rich text overlays on images and cleaning file names for safe and consistent file management.\nNOTE: The files in the repo are not organized."
-        },
-        {
-            "author": "VykosX",
-            "title": "ControlFlowUtils [UNSTABLE]",
-            "reference": "https://github.com/VykosX/ControlFlowUtils",
-            "files": [
-                "https://github.com/VykosX/ControlFlowUtils"
-            ],
-            "install_type": "git-clone",
-            "description": "Custom nodes for ComfyUI to enable flow control with advanced loops, conditional branching, logic operations and several other nifty utilities to enhance your ComfyUI workflows"
         },
         {
             "author": "shinich39",
@@ -1062,17 +1093,6 @@
             "description": "I've been working on the UX/UI of a timeline custom node system for ComfyUI over the past two weeks. The goal is to create a timeline similar to video/animation editing tools, without relying on traditional timeframe code. You can effortlessly add, delete, or rearrange rows, providing a streamlined user experience."
         },
         {
-            "author": "jh-leon-kim",
-            "title": "ComfyUI-JHK-utils",
-            "id": "jhk",
-            "reference": "https://github.com/jh-leon-kim/ComfyUI-JHK-utils",
-            "files": [
-                "https://github.com/jh-leon-kim/ComfyUI-JHK-utils"
-            ],
-            "install_type": "git-clone",
-            "description": "Nodes:JHK_Utils_LoadEmbed, JHK_Utils_string_merge, JHK_Utils_ImageRemoveBackground"
-        },
-        {
             "author": "StartHua",
             "title": "Comfyui_CXH_CRM",
             "id": "cxh-crm",
@@ -1318,16 +1338,6 @@
             ],
             "install_type": "git-clone",
             "description": "Dandy is a JavaScript bridge for ComfyUI. It includes everything you need to make JavaScript enabled extensions, or just load and code in little editor nodes right in ComfyUI.[w/This code can cause security issues because it allows for the execution of arbitrary JavaScript input.]"
-        },
-        {
-            "author": "tachyon-beep",
-            "title": "comfyui-simplefeed [UNSAFE]",
-            "reference": "https://github.com/tachyon-beep/comfyui-simplefeed",
-            "files": [
-                "https://github.com/tachyon-beep/comfyui-simplefeed"
-            ],
-            "install_type": "git-clone",
-            "description": "A simple image feed for comfyUI which is easily configurable and easily extensible.\nUse the filter button to select which nodes write to the feed. Under settings, there are options that allow you: Position the feed. Set a max iamge count for the feed. Set oldest to newest or newest to oldest."
         },
         {
             "author": "shadowcz007",
@@ -2040,16 +2050,6 @@
             ],
             "install_type": "git-clone",
             "description": "Nodes: Node Jumper. Various quality of life testing nodes"
-        },
-        {
-            "author": "ilovejohnwhite",
-            "title": "TatToolkit",
-            "reference": "https://github.com/ilovejohnwhite/UncleBillyGoncho",
-            "files": [
-                "https://github.com/ilovejohnwhite/UncleBillyGoncho"
-            ],
-            "install_type": "git-clone",
-            "description": "Nodes:UWU TTK Preprocessor, Pixel Perfect Resolution, Generation Resolution From Image, Generation Resolution From Latent, Enchance And Resize Hint Images, ..."
         },
         {
             "author": "IvanZhd",
