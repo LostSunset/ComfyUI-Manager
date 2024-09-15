@@ -204,6 +204,21 @@
             "title_aux": "ComfyUI-ViViD"
         }
     ],
+    "https://github.com/AIFSH/HivisionIDPhotos-ComfyUI": [
+        [
+            "AddBackgroundNode",
+            "AddWaterMarkNode",
+            "ENHivisionParamsNode",
+            "HivisionLayOutNode",
+            "HivisionNode",
+            "ZHHivisionParamsNode"
+        ],
+        {
+            "author": "cuny",
+            "description": "",
+            "title_aux": "HivisionIDPhotos-ComfyUI"
+        }
+    ],
     "https://github.com/AIFSH/IMAGDressing-ComfyUI": [
         [
             "IMAGDressingNode",
@@ -270,6 +285,15 @@
             "nickname": "ComfyUI Text Tools",
             "title": "ComfyUI APZmedia Text Tools",
             "title_aux": "comfyui-textools [WIP]"
+        }
+    ],
+    "https://github.com/AlexXi19/ComfyUI-OpenAINode": [
+        [
+            "ImageWithPrompt",
+            "TextWithPrompt"
+        ],
+        {
+            "title_aux": "ComfyUI-OpenAINode"
         }
     ],
     "https://github.com/AllenEdgarPoe/ComfyUI-Xorbis-nodes": [
@@ -408,7 +432,10 @@
     ],
     "https://github.com/Comfy-Org/ComfyUI_devtools": [
         [
-            "DevToolsErrorRaiseNode"
+            "DevToolsDeprecatedNode",
+            "DevToolsErrorRaiseNode",
+            "DevToolsErrorRaiseNodeWithMessage",
+            "DevToolsExperimentalNode"
         ],
         {
             "title_aux": "ComfyUI_devtools [WIP]"
@@ -532,10 +559,20 @@
             "title_aux": "GH Tools for ComfyUI"
         }
     ],
+    "https://github.com/IgPoly/ComfyUI-igTools": [
+        [
+            "IGT_SimpleTilesCalc"
+        ],
+        {
+            "title_aux": "ComfyUI-igTools"
+        }
+    ],
     "https://github.com/Isi-dev/ComfyUI-UniAnimate": [
         [
             "Gen_align_pose",
-            "UniAnimateImage"
+            "ReposeImage",
+            "UniAnimateImage",
+            "UniAnimateImageLong"
         ],
         {
             "title_aux": "Isi-dev/ComfyUI-UniAnimate"
@@ -662,16 +699,6 @@
         ],
         {
             "title_aux": "ComfyUI simple ChatGPT completion [UNSAFE]"
-        }
-    ],
-    "https://github.com/LyazS/comfyui-nettools": [
-        [
-            "NTL_LoadImageBase64",
-            "NTL_LoadMaskBase64",
-            "NTL_SendImageWebSocket"
-        ],
-        {
-            "title_aux": "comfyui-nettools"
         }
     ],
     "https://github.com/LykosAI/ComfyUI-Inference-Core-Nodes": [
@@ -871,6 +898,22 @@
             "nickname": "shinsplat",
             "title": "Shinsplat",
             "title_aux": "ComfyUI-Shinsplat [UNSAFE]"
+        }
+    ],
+    "https://github.com/SoftMeng/ComfyUI-PIL": [
+        [
+            "PIL Effects (Mexx)"
+        ],
+        {
+            "title_aux": "ComfyUI-PIL"
+        }
+    ],
+    "https://github.com/Soppatorsk/comfyui_img_to_ascii": [
+        [
+            "Img_to_ASCII"
+        ],
+        {
+            "title_aux": "comfyui_img_to_ascii [WIP]"
         }
     ],
     "https://github.com/SpaceWarpStudio/ComfyUI_Remaker_FaceSwap": [
@@ -1415,6 +1458,7 @@
             "TestWhileLoopOpen",
             "ThresholdMask",
             "TomePatchModel",
+            "TorchCompileModel",
             "TripleCLIPLoader",
             "UNETLoader",
             "UNetCrossAttentionMultiply",
@@ -1693,6 +1737,14 @@
             "title_aux": "Comfyui-SadTalker"
         }
     ],
+    "https://github.com/hgabha/WWAA-CustomNodes": [
+        [
+            "WWAA-LineCount"
+        ],
+        {
+            "title_aux": "WWAA-CustomNodes"
+        }
+    ],
     "https://github.com/horidream/ComfyUI-Horidream": [
         [
             "PassThroughWithSound"
@@ -1814,26 +1866,6 @@
             "title_aux": "Kolors Awesome Prompts [WIP]"
         }
     ],
-    "https://github.com/ilovejohnwhite/UncleBillyGoncho": [
-        [
-            "CannyEdgePreprocessor",
-            "DiffusionEdge_Preprocessor",
-            "HintImageEnchance",
-            "ImageGenResolutionFromImage",
-            "ImageGenResolutionFromLatent",
-            "LineArtPreprocessor",
-            "LinkMasterNode",
-            "PiDiNetPreprocessor",
-            "PixelPerfectResolution",
-            "SuckerPunch",
-            "UWU_Preprocessor",
-            "VooDooNode",
-            "VooDooNode2"
-        ],
-        {
-            "title_aux": "TatToolkit"
-        }
-    ],
     "https://github.com/immersiveexperience/ie-comfyui-color-nodes": [
         [
             "Average Color",
@@ -1846,27 +1878,28 @@
             "title_aux": "ie-comfyui-color-nodes"
         }
     ],
+    "https://github.com/jazhang00/ComfyUI-Slicedit": [
+        [
+            "BackgroundScaler",
+            "CalculateNormalsFromImages",
+            "DetailTransfer",
+            "ICLightConditioning",
+            "LightSource",
+            "LoadAndApplyICLightUnet",
+            "LoadHDRImage",
+            "SaveImageWebsocket",
+            "VideoEffects"
+        ],
+        {
+            "title_aux": "ComfyUI Node for Slicedit"
+        }
+    ],
     "https://github.com/jgbrblmd/ComfyUI-ComfyFluxSize": [
         [
             "ComfyFluxSize"
         ],
         {
             "title_aux": "ComfyUI-ComfyFluxSize [WIP]"
-        }
-    ],
-    "https://github.com/jh-leon-kim/ComfyUI-JHK-utils": [
-        [
-            "JHK_Utils_ImageRemoveBackground",
-            "JHK_Utils_LargestImageSelector",
-            "JHK_Utils_LoadEmbed",
-            "JHK_Utils_LoadImageFromPath",
-            "JHK_Utils_RandomImageSelector",
-            "JHK_Utils_SelectSingleImageFromPath",
-            "JHK_Utils_string_filter",
-            "JHK_Utils_string_merge"
-        ],
-        {
-            "title_aux": "ComfyUI-JHK-utils"
         }
     ],
     "https://github.com/jimmm-ai/TimeUi-a-ComfyUi-Timeline-Node": [
@@ -1892,15 +1925,6 @@
         ],
         {
             "title_aux": "Jim's ComfyUI Nodes [WIP]"
-        }
-    ],
-    "https://github.com/jinljin/ComfyUI-ElevenlabsAndDID-Combine": [
-        [
-            "BatchTalkingHeadRun",
-            "\ud83d\ude80SingleTalkingHeadRun"
-        ],
-        {
-            "title_aux": "ComfyUI-Talking-Head [WIP]"
         }
     ],
     "https://github.com/jn-jairo/jn_node_suite_comfyui": [
@@ -2290,6 +2314,7 @@
     ],
     "https://github.com/marduk191/comfyui-marnodes": [
         [
+            "ImageToDevice",
             "marduk191_5_text_string",
             "marduk191_5way_text_switch",
             "marduk191_s_random_latent",
@@ -2525,6 +2550,18 @@
         ],
         {
             "title_aux": "SDFXBridgeForComfyUI - ComfyUI Custom Node for SDFX Integration"
+        }
+    ],
+    "https://github.com/seancheung/comfyui-creative-nodes": [
+        [
+            "CreativeSkipFromFlow",
+            "CreativeSkipToFlow",
+            "CreativeStopFlow",
+            "ResolutionSelector",
+            "ResolutionXLSelector"
+        ],
+        {
+            "title_aux": "comfyui-creative-nodes"
         }
     ],
     "https://github.com/sebord/ComfyUI-LMCQ": [
