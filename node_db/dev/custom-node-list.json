@@ -13,6 +13,76 @@
 
 
         {
+            "author": "neo0801",
+            "title": "my-comfy-node",
+            "reference": "https://github.com/neo0801/my-comfy-node",
+            "files": [
+                "https://github.com/neo0801/my-comfy-node"
+            ],
+            "install_type": "git-clone",
+            "description": "NODES:Deep Mosaic Get Image Mosaic Mask, Deep Mosaic Get Video Mosaic Mask, Deep Mosaic Remove Image Mosaic, Deep Mosaic Remove Video Mosaic"
+        },
+        {
+            "author": "nikkuexe",
+            "title": "List Data Helper Nodes",
+            "reference": "https://github.com/paulhoux/Smart-Prompting",
+            "files": [
+                "https://github.com/paulhoux/Smart-Prompting"
+            ],
+            "install_type": "git-clone",
+            "description": "Custom nodes for ComfyUI, allowing you to more easily manipulate text and create good prompts.[w/The use of outdated front extension techniques results in remnants being left behind during uninstallation.]"
+        },
+        {
+            "author": "nikkuexe",
+            "title": "List Data Helper Nodes",
+            "reference": "https://github.com/nikkuexe/ComfyUI-ListDataHelpers",
+            "files": [
+                "https://github.com/nikkuexe/ComfyUI-ListDataHelpers"
+            ],
+            "install_type": "git-clone",
+            "description": "A set of custom nodes for handling lists in ComfyUI."
+        },
+        {
+            "author": "Fannovel16",
+            "title": "ComfyUI-AppIO",
+            "reference": "https://github.com/Fannovel16/ComfyUI-AppIO",
+            "files": [
+                "https://github.com/Fannovel16/ComfyUI-AppIO"
+            ],
+            "install_type": "git-clone",
+            "description": "NODES:AppIO_StringInput, AppIO_ImageInput, AppIO_StringOutput, AppIO_ImageOutput"
+        },
+        {
+            "author": "wilzamguerrero",
+            "title": "Comfyui-DownZ",
+            "reference": "https://github.com/wilzamguerrero/Comfyui-DownZ",
+            "files": [
+                "https://github.com/wilzamguerrero/Comfyui-DownZ"
+            ],
+            "install_type": "git-clone",
+            "description": "NODES:Download Z, Compress Z, Move Z"
+        },
+        {
+            "author": "SoftMeng",
+            "title": "ComfyUI-PIL",
+            "reference": "https://github.com/SoftMeng/ComfyUI-PIL",
+            "files": [
+                "https://github.com/SoftMeng/ComfyUI-PIL"
+            ],
+            "install_type": "git-clone",
+            "description": "PIL Nodes"
+        },
+        {
+            "author": "seancheung",
+            "title": "comfyui-creative-nodes",
+            "reference": "https://github.com/seancheung/comfyui-creative-nodes",
+            "files": [
+                "https://github.com/seancheung/comfyui-creative-nodes"
+            ],
+            "install_type": "git-clone",
+            "description": "NODES:Stop Flow, Skip From Flow, Skip To Flow, Resolution Selector, ResolutionXL Selector"
+        },
+        {
             "author": "AlexXi19",
             "title": "ComfyUI-OpenAINode",
             "reference": "https://github.com/AlexXi19/ComfyUI-OpenAINode",
@@ -43,16 +113,6 @@
             "description": "NODES:IGT Simple Tiles Calc"
         },
         {
-            "author": "jazhang00",
-            "title": "ComfyUI Node for Slicedit",
-            "reference": "https://github.com/jazhang00/ComfyUI-Slicedit",
-            "files": [
-                "https://github.com/jazhang00/ComfyUI-Slicedit"
-            ],
-            "install_type": "git-clone",
-            "description": "Slicedit main page: [a/https://matankleiner.github.io/slicedit/](https://matankleiner.github.io/slicedit/). Use Slicedit with ComfyUI."
-        },
-        {
             "author": "Ryota",
             "title": "Ryota's Nodes",
             "reference": "https://github.com/lichenhao/Comfyui_Ryota",
@@ -73,14 +133,14 @@
             "description": "Basic functionality for converting an image to ASCII art returned as a png image based on [a/ascii_magic](https://github.com/LeandroBarone/python-ascii_magic)"
         },
         {
-            "author": "LyazS",
-            "title": "comfyui-nettools",
-            "reference": "https://github.com/LyazS/comfyui-nettools",
+            "author": "AIFSH",
+            "title": "HivisionIDPhotos-ComfyUI",
+            "reference": "https://github.com/AIFSH/HivisionIDPhotos-ComfyUI",
             "files": [
-                "https://github.com/LyazS/comfyui-nettools"
+                "https://github.com/AIFSH/HivisionIDPhotos-ComfyUI"
             ],
             "install_type": "git-clone",
-            "description": "rewrite from [a/https://github.com/Acly/comfyui-tooling-nodes](https://github.com/Acly/comfyui-tooling-nodes)"
+            "description": "a custom node for [a/HivisionIDPhotos](https://github.com/Zeyi-Lin/HivisionIDPhotos).\nNOTE: Unsuitable for international users"
         },
         {
             "author": "lu64k",
@@ -332,16 +392,6 @@
             ],
             "install_type": "git-clone",
             "description": "ComfyUI small node toolkit, this toolkit is mainly to update some practical small nodes, to make a contribution to the comfyui ecosystem, PS: 'LMCQ' is the abbreviation of the team name\nNOTE: The files in the repo are not organized, which may lead to update issues."
-        },
-        {
-            "author": "logtd",
-            "title": "ComfyUI-Fluxtapoz [WIP]",
-            "reference": "https://github.com/logtd/ComfyUI-Fluxtapoz",
-            "files": [
-                "https://github.com/logtd/ComfyUI-Fluxtapoz"
-            ],
-            "install_type": "git-clone",
-            "description": "A set of nodes for editing images using Flux in ComfyUI"
         },
         {
             "author": "ChrisColeTech",
