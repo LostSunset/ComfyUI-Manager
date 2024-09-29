@@ -1,6 +1,41 @@
 {
   "models": [
     {
+      "name": "Shakker-Labs/FLUX.1-dev-ControlNet-Union-Pro (fp8_e4m3fn) by Kijai",
+      "type": "controlnet",
+      "base": "FLUX.1",
+      "save_path": "controlnet/FLUX.1",
+      "description": "FLUX.1 [Dev] Union Controlnet. Supports Canny, Tile, Depth, Blur, Pose, Gray, Low Quality\nVersion quantized to fp8_e4m3fn by Kijai",
+      "reference": "https://huggingface.co/Kijai/flux-fp8",
+      "filename": "flux_shakker_labs_union_pro-fp8_e4m3fn.safetensors",
+      "url": "https://huggingface.co/Kijai/flux-fp8/resolve/main/flux_shakker_labs_union_pro-fp8_e4m3fn.safetensors",
+      "size": "3.3GB"
+    },
+    
+    {
+      "name": "ViT-L-14-TEXT-detail-improved-hiT-GmP-HF.safetensors [Long CLIP L]",
+      "type": "clip",
+      "base": "clip",
+      "save_path": "clip/long_clip",
+      "description": "Greatly improved TEXT + Detail (as CLIP-L for Flux.1)",
+      "reference": "https://huggingface.co/zer0int",
+      "filename": "ViT-L-14-TEXT-detail-improved-hiT-GmP-HF.safetensors",
+      "url": "https://huggingface.co/zer0int/CLIP-GmP-ViT-L-14/resolve/main/ViT-L-14-TEXT-detail-improved-hiT-GmP-HF.safetensors",
+      "size": "931MB"
+    },
+    {
+      "name": "ViT-L-14-TEXT-detail-improved-hiT-GmP-HF.safetensors [Long CLIP L]",
+      "type": "clip",
+      "base": "clip",
+      "save_path": "clip/long_clip",
+      "description": "Greatly improved TEXT + Detail (as CLIP-L for Flux.1)",
+      "reference": "https://huggingface.co/zer0int",
+      "filename": "ViT-L-14-TEXT-detail-improved-hiT-GmP-TE-only-HF.safetensors",
+      "url": "https://huggingface.co/zer0int/CLIP-GmP-ViT-L-14/resolve/main/ViT-L-14-TEXT-detail-improved-hiT-GmP-TE-only-HF.safetensors",
+      "size": "323MB"
+    },
+
+    {
       "name": "Shakker-Labs/FLUX.1-dev-ControlNet-Union-Pro",
       "type": "controlnet",
       "base": "FLUX.1",
