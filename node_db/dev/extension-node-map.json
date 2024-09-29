@@ -302,9 +302,13 @@
         [
             "Add Human Styler",
             "Convert Monochrome",
+            "Mask Aligned bbox for Inpainting",
+            "Mask Square bbox for Inpainting",
+            "One Image Compare",
             "RT4KSR Loader",
             "RandomPromptStyler",
             "Save Log Info",
+            "Three Image Compare",
             "Upscale RT4SR"
         ],
         {
@@ -438,7 +442,11 @@
             "DevToolsErrorRaiseNode",
             "DevToolsErrorRaiseNodeWithMessage",
             "DevToolsExperimentalNode",
-            "DevToolsLongComboDropdown"
+            "DevToolsLongComboDropdown",
+            "DevToolsNodeWithForceInput",
+            "DevToolsNodeWithOnlyOptionalInput",
+            "DevToolsNodeWithOptionalInput",
+            "DevToolsNodeWithOutputList"
         ],
         {
             "title_aux": "ComfyUI_devtools [WIP]"
@@ -1099,6 +1107,14 @@
             "title_aux": "Dream Project Video Batches [WIP]"
         }
     ],
+    "https://github.com/ashishsaini/comfyui-segment-clothing-sleeves": [
+        [
+            "segformer_b2_sleeves"
+        ],
+        {
+            "title_aux": "comfyui_segformer_b2_sleeves"
+        }
+    ],
     "https://github.com/baicai99/ComfyUI-FrameSkipping": [
         [
             "FrameSelector",
@@ -1718,6 +1734,7 @@
             "Tools:Image2video",
             "Tools:LoadAudioUrl",
             "Tools:PreviewVideo",
+            "Tools:SetString",
             "Tools:SetValue",
             "Tools:VideoWatermark"
         ],
@@ -1761,7 +1778,9 @@
     ],
     "https://github.com/hgabha/WWAA-CustomNodes": [
         [
-            "WWAA-LineCount"
+            "WWAA-BuildString",
+            "WWAA-LineCount",
+            "WWAA_DitherNode"
         ],
         {
             "title_aux": "WWAA-CustomNodes"
@@ -1900,6 +1919,14 @@
             "title_aux": "ie-comfyui-color-nodes"
         }
     ],
+    "https://github.com/io-club/ComfyUI-LuminaNext": [
+        [
+            "GemmaClipLoader"
+        ],
+        {
+            "title_aux": "ComfyUI-LuminaNext [WIP]"
+        }
+    ],
     "https://github.com/jgbrblmd/ComfyUI-ComfyFluxSize": [
         [
             "ComfyFluxSize"
@@ -2008,6 +2035,14 @@
         ],
         {
             "title_aux": "jn_node_suite_comfyui [WIP]"
+        }
+    ],
+    "https://github.com/jordancoult/ComfyUI_HelpfulNodes": [
+        [
+            "JCo_CropAroundKPS"
+        ],
+        {
+            "title_aux": "ComfyUI_HelpfulNodes"
         }
     ],
     "https://github.com/jp0215/comfyUI_padding-resize_node/raw/main/PaddingNode.py": [
@@ -2196,6 +2231,23 @@
         ],
         {
             "title_aux": "ssd-1b-comfyui"
+        }
+    ],
+    "https://github.com/leeguandong/ComfyUI_AliControlnetInpainting": [
+        [
+            "AliInpaintingsampler",
+            "EcomXL_AddFG",
+            "EcomXL_Condition",
+            "EcomXL_Controlnet_ModelLoader",
+            "EcomXL_LoadImage",
+            "EcomXL_SDXL_Inpaint_ModelLoader",
+            "Flux_Controlnet_ModelLoader",
+            "Flux_Inpainting_ModelLoader",
+            "SD3_Controlnet_ModelLoader",
+            "SD3_Inpainting_ModelLoader"
+        ],
+        {
+            "title_aux": "ComfyUI_AliControlnetInpainting [WIP]"
         }
     ],
     "https://github.com/leoleelxh/ComfyUI-MidjourneyNode-leoleexh": [
@@ -2457,7 +2509,9 @@
     ],
     "https://github.com/nikkuexe/ComfyUI-ListDataHelpers": [
         [
-            "List Difference"
+            "List Difference",
+            "VHS Output Filter",
+            "VHS_VideoOutputFilter"
         ],
         {
             "title_aux": "List Data Helper Nodes"
@@ -2629,6 +2683,15 @@
         ],
         {
             "title_aux": "ComfyUI-PuLID [TEST]"
+        }
+    ],
+    "https://github.com/shadowcz007/Comfyui-EzAudio": [
+        [
+            "EZGenerateAudioNode",
+            "EZLoadModelNode"
+        ],
+        {
+            "title_aux": "Comfyui-EzAudio"
         }
     ],
     "https://github.com/shadowcz007/comfyui-CLIPSeg": [

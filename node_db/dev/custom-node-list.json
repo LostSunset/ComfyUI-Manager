@@ -13,6 +13,66 @@
 
 
         {
+            "author": "netanelben",
+            "title": "comfyui-text2image-customnode [WIP]",
+            "reference": "https://github.com/netanelben/comfyui-text2image-customnode",
+            "files": [
+                "https://github.com/netanelben/comfyui-text2image-customnode"
+            ],
+            "install_type": "git-clone",
+            "description": "text2image web extension"
+        },
+        {
+            "author": "leeguandong",
+            "title": "ComfyUI_AliControlnetInpainting [WIP]",
+            "reference": "https://github.com/leeguandong/ComfyUI_AliControlnetInpainting",
+            "files": [
+                "https://github.com/leeguandong/ComfyUI_AliControlnetInpainting"
+            ],
+            "install_type": "git-clone",
+            "description": "ComfyUI nodes to use AliControlnetInpainting"
+        },
+        {
+            "author": "jordancoult",
+            "title": "ComfyUI_HelpfulNodes",
+            "reference": "https://github.com/jordancoult/ComfyUI_HelpfulNodes",
+            "files": [
+                "https://github.com/jordancoult/ComfyUI_HelpfulNodes"
+            ],
+            "install_type": "git-clone",
+            "description": "NODES: Prep Crop Around Keypoints"
+        },
+        {
+            "author": "ashishsaini",
+            "title": "comfyui_segformer_b2_sleeves",
+            "reference": "https://github.com/ashishsaini/comfyui-segment-clothing-sleeves",
+            "files": [
+                "https://github.com/ashishsaini/comfyui-segment-clothing-sleeves"
+            ],
+            "install_type": "git-clone",
+            "description": "NODES:segformer_b2_sleeves"
+        },
+        {
+            "author": "io-club",
+            "title": "ComfyUI-LuminaNext [WIP]",
+            "reference": "https://github.com/io-club/ComfyUI-LuminaNext",
+            "files": [
+                "https://github.com/io-club/ComfyUI-LuminaNext"
+            ],
+            "install_type": "git-clone",
+            "description": "NODES: GemmaClipLoader"
+        },
+        {
+            "author": "shadowcz007",
+            "title": "Comfyui-EzAudio",
+            "reference": "https://github.com/shadowcz007/Comfyui-EzAudio",
+            "files": [
+                "https://github.com/shadowcz007/Comfyui-EzAudio"
+            ],
+            "install_type": "git-clone",
+            "description": "NODES: EZ Generate Audio, EZ Load Model\nNOTE: The files in the repo are not organized."
+        },
+        {
             "author": "neo0801",
             "title": "my-comfy-node",
             "reference": "https://github.com/neo0801/my-comfy-node",
