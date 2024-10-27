@@ -10,7 +10,26 @@
         },
         
         
-
+        {
+            "author": "Jonseed",
+            "title": "ComfyUI-Detail-Daemon [REMOVED]",
+            "reference": "https://github.com/Jonseed/ComfyUI-Detail-Daemon",
+            "files": [
+                "https://github.com/Jonseed/ComfyUI-Detail-Daemon"
+            ],
+            "install_type": "git-clone",
+            "description": "A port of muerrilla's [a/sd-webui-Detail-Daemon](https://github.com/muerrilla/sd-webui-detail-daemon) as a node for ComfyUI, to adjust sigmas that control detail."
+        },
+        {
+            "author": "Firetheft",
+            "title": "ComfyUI-Flux-Prompt-Tools [REMOVED]",
+            "reference": "https://github.com/Firetheft/ComfyUI-Flux-Prompt-Tools",
+            "files": [
+                "https://github.com/Firetheft/ComfyUI-Flux-Prompt-Tools"
+            ],
+            "install_type": "git-clone",
+            "description": "NODES:Flux Prompt Enhance, Flux Prompt Gemini Flash, Flux Prompt Generator, MiniCPM V2.6 Int4"
+        },
         {
             "author": "jtydhr88",
             "title": "ComfyUI Unique3D [DEPRECATED]",

@@ -537,20 +537,6 @@
             "title_aux": "ComfyUI-AppIO"
         }
     ],
-    "https://github.com/Firetheft/ComfyUI-Flux-Prompt-Tools": [
-        [
-            "ColorPaletteExtractorNode",
-            "ColorPalettePickerNode",
-            "ColorPaletteTransferNode",
-            "FluxPromptEnhanceNode",
-            "GeminiFlashNode",
-            "MiniCPM_V_2_6_Int4_Node",
-            "PromptGeneratorNode"
-        ],
-        {
-            "title_aux": "ComfyUI-Flux-Prompt-Tools"
-        }
-    ],
     "https://github.com/Fucci-Mateo/ComfyUI-Airtable": [
         [
             "Push pose to Airtable"
@@ -852,6 +838,33 @@
         ],
         {
             "title_aux": "ComfyUI-SpaceFlower"
+        }
+    ],
+    "https://github.com/Poukpalaova/ComfyUI-FRED-Nodes": [
+        [
+            "FRED_AutoCropImage_SDXL_Ratio_V3",
+            "FRED_AutoCropImage_SDXL_Ratio_V4",
+            "FRED_CropFace",
+            "FRED_FolderSelector",
+            "FRED_ImageBrowser_Dress",
+            "FRED_ImageBrowser_Eyes_Color",
+            "FRED_ImageBrowser_Generic",
+            "FRED_ImageBrowser_Hair_Color",
+            "FRED_ImageBrowser_Hair_Style",
+            "FRED_ImageBrowser_Top",
+            "FRED_JoinImages",
+            "FRED_LoadImage_V2",
+            "FRED_LoadImage_V3",
+            "FRED_LoadImage_V4",
+            "FRED_LoadImage_V5",
+            "FRED_LoadPathImagesPreview",
+            "FRED_LoadPathImagesPreview_v2",
+            "FRED_LoadRetinaFace",
+            "FRED_PreviewOnly",
+            "FRED_photo_prompt"
+        ],
+        {
+            "title_aux": "ComfyUI-FRED-Nodes [WIP]"
         }
     ],
     "https://github.com/Quasimondo/ComfyUI-QuasimondoNodes": [
@@ -1179,7 +1192,8 @@
         [
             "PyExec",
             "PyExec_Output",
-            "PyExec_OutputIsList"
+            "PyExec_OutputIsList",
+            "PyExec_OutputIsValue"
         ],
         {
             "author": "SeniorPioner",
@@ -1441,6 +1455,7 @@
             "ModelMergeFlux1",
             "ModelMergeSD1",
             "ModelMergeSD2",
+            "ModelMergeSD35_Large",
             "ModelMergeSD3_2B",
             "ModelMergeSDXL",
             "ModelMergeSimple",
@@ -1678,6 +1693,20 @@
             "title_aux": "ComfyUI_WcpD_Utility_Kit"
         }
     ],
+    "https://github.com/downlifted/ComfyUI_BWiZ_Nodes": [
+        [
+            "BWIZInteractiveLogMonitor",
+            "BWIZ_AdvancedLoadImageBatch",
+            "BWIZ_CaptainWebhook",
+            "BWIZ_ComfyEmail",
+            "BWIZ_ErrorDetector",
+            "BWIZ_HFRepoBatchLoader",
+            "BWIZ_NotificationSound"
+        ],
+        {
+            "title_aux": "ComfyUI_BWiZ_Nodes [WIP]"
+        }
+    ],
     "https://github.com/eigenpunk/ComfyUI-audio": [
         [
             "ApplyVoiceFixer",
@@ -1807,6 +1836,7 @@
             "GNI_HEX_TO_COLOR",
             "GNI_RGB_TO_COLOR",
             "GN_COLOR_TO_INT",
+            "GN_IO_GET_FILENAME",
             "GN_MASK_TO_IMAGE",
             "GN_SNAP_RESIZE"
         ],
@@ -2301,6 +2331,21 @@
             "title_aux": "ComfyUI-FollowYourEmojiWrapper [WIP]"
         }
     ],
+    "https://github.com/kijai/ComfyUI-MochiWrapper": [
+        [
+            "DownloadAndLoadMochiModel",
+            "MochiDecode",
+            "MochiDecodeSpatialTiling",
+            "MochiModelLoader",
+            "MochiSampler",
+            "MochiTextEncode",
+            "MochiTorchCompileSettings",
+            "MochiVAELoader"
+        ],
+        {
+            "title_aux": "ComfyUI-MochiWrapper [WIP]"
+        }
+    ],
     "https://github.com/kijai/ComfyUI-VEnhancer": [
         [
             "DownloadAndLoadVEnhancerModel",
@@ -2309,6 +2354,15 @@
         ],
         {
             "title_aux": "ComfyUI nodes for VEnhancer [WIP]"
+        }
+    ],
+    "https://github.com/kk8bit/KayTool": [
+        [
+            "Color_Adjustment",
+            "Custom_Save_Image"
+        ],
+        {
+            "title_aux": "KayTool"
         }
     ],
     "https://github.com/komojini/ComfyUI_Prompt_Template_CustomNodes/raw/main/prompt_with_template.py": [
@@ -2364,6 +2418,14 @@
         ],
         {
             "title_aux": "ssd-1b-comfyui"
+        }
+    ],
+    "https://github.com/leadbreak/comfyui-faceaging": [
+        [
+            "AgeTransformationNode"
+        ],
+        {
+            "title_aux": "Face Aging [WIP]"
         }
     ],
     "https://github.com/leeguandong/ComfyUI_AliControlnetInpainting": [
@@ -2468,6 +2530,15 @@
         ],
         {
             "title_aux": "comfyui-one-more-step [WIP]"
+        }
+    ],
+    "https://github.com/lordwedggie/xcpNodes": [
+        [
+            "xcpFloatSlider",
+            "xcpIntSlider"
+        ],
+        {
+            "title_aux": "xcpNodes [WIP]"
         }
     ],
     "https://github.com/ltdrdata/ComfyUI-Workflow-Component": [
@@ -2706,7 +2777,9 @@
             "PromptUtilitiesRandomPreset",
             "PromptUtilitiesRandomPresetAdvanced",
             "PromptUtilitiesReplaceOrInsertTag",
-            "PromptUtilitiesRoundPromptWeight"
+            "PromptUtilitiesRoundPromptWeight",
+            "PromptUtilitiesSampleTags",
+            "PromptUtilitiesSampleTagsWithWeight"
         ],
         {
             "title_aux": "ComfyUI-PromptUtilities"

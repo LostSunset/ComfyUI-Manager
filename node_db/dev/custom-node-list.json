@@ -10,6 +10,78 @@
         },
 
 
+
+
+        {
+            "author": "kijai",
+            "title": "ComfyUI-MochiWrapper [WIP]",
+            "reference": "https://github.com/kijai/ComfyUI-MochiWrapper",
+            "files": [
+                "https://github.com/kijai/ComfyUI-MochiWrapper"
+            ],
+            "install_type": "git-clone",
+            "description": "ComfyUI wrapper nodes for [a/Mochi](https://github.com/genmoai/models) video generator"
+        },
+        {
+            "author": "kk8bit",
+            "title": "KayTool",
+            "reference": "https://github.com/kk8bit/KayTool",
+            "files": [
+                "https://github.com/kk8bit/KayTool"
+            ],
+            "install_type": "git-clone",
+            "description": "KayTool is a custom node utility package developed for ComfyUI. I plan to add more features in the future."
+        },
+        {
+            "author": "leadbreak",
+            "title": "Face Aging [WIP]",
+            "reference": "https://github.com/leadbreak/comfyui-faceaging",
+            "files": [
+                "https://github.com/leadbreak/comfyui-faceaging"
+            ],
+            "install_type": "git-clone",
+            "description": "This is a comfyui custom node version of [a/Age Transformation](https://github.com/yuval-alaluf/SAM).\nNOTE: The files in the repo are not organized."
+        },
+        {
+            "author": "downlifted",
+            "title": "ComfyUI_BWiZ_Nodes [WIP]",
+            "reference": "https://github.com/downlifted/ComfyUI_BWiZ_Nodes",
+            "files": [
+                "https://github.com/downlifted/ComfyUI_BWiZ_Nodes"
+            ],
+            "install_type": "git-clone",
+            "description": "NODES:CaptainWebhook, CaptainWebhook-Email, CaptainWebhook-Push, BWIZ_AdvancedLoadImageBatch, BWIZ_ErrorDetector, BWIZ_HFRepoBatchLoader, BWIZ_NotificationSound.\nNOTE: The files in the repo are not organized."
+        },
+        {
+            "author": "Poukpalaova",
+            "title": "ComfyUI-FRED-Nodes [WIP]",
+            "reference": "https://github.com/Poukpalaova/ComfyUI-FRED-Nodes",
+            "files": [
+                "https://github.com/Poukpalaova/ComfyUI-FRED-Nodes"
+            ],
+            "install_type": "git-clone",
+            "description": "This repository contains custom nodes for ComfyUI. This is a work in progress (WIP).\nNOTE: The files in the repo are not organized."
+        },
+        {
+            "author": "blurymind",
+            "title": "cozy-fireplace [WIP]",
+            "reference": "https://github.com/blurymind/cozy-fireplace",
+            "files": [
+                "https://github.com/blurymind/cozy-fireplace"
+            ],
+            "install_type": "git-clone",
+            "description": "Cozy fireplace is a ComfyUI workflow prompter that brings a localhost server frontend for existing workflows created in ComfyUi. Just place your favorite or lovingly crafted workflows in a folder and cozy fireplace will let you select and run any of them (export them as API type in comfyui) It's a cozy UI that scales all the way down to mobile phone devices - to let you prompt your beefy pc at home with your smartphone."
+        },
+        {
+            "author": "lordwedggie",
+            "title": "xcpNodes [WIP]",
+            "reference": "https://github.com/lordwedggie/xcpNodes",
+            "files": [
+                "https://github.com/lordwedggie/xcpNodes"
+            ],
+            "install_type": "git-clone",
+            "description": "Slider nodes based on Smirnov75's codes [a/https://github.com/Smirnov75/ComfyUI-mxToolkit](https://github.com/Smirnov75/ComfyUI-mxToolkit)\nNOTE: The files in the repo are not organized."
+        },
         {
             "author": "kxh",
             "title": "ComfyUI-ImageUpscaleWithModelMultipleTimes",
@@ -49,16 +121,6 @@
             ],
             "install_type": "git-clone",
             "description": "NODES:Check Value Type"
-        },
-        {
-            "author": "Firetheft",
-            "title": "ComfyUI-Flux-Prompt-Tools",
-            "reference": "https://github.com/Firetheft/ComfyUI-Flux-Prompt-Tools",
-            "files": [
-                "https://github.com/Firetheft/ComfyUI-Flux-Prompt-Tools"
-            ],
-            "install_type": "git-clone",
-            "description": "NODES:flux-prompt-enhance-node, flux-prompt-generator, flux-prompt-gemini-flash-node"
         },
         {
             "author": "SirVeggie",
@@ -1611,7 +1673,7 @@
                 "https://github.com/flyingdogsoftware/gyre_for_comfyui"
             ],
             "install_type": "git-clone",
-            "description": "Nodes:GyreLoopStart, GyreLoopEnd, GyreIfElse"
+            "description": "Nodes:BackgroundRemoval, GyreLoopStart, GyreLoopEnd, GyreIfElse"
         },
         {
             "author": "githubYiheng",
