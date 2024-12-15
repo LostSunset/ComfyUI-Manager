@@ -319,6 +319,14 @@
             "title_aux": "comfyui-textools [WIP]"
         }
     ],
+    "https://github.com/Aksaz/seamless-clone-comfyui": [
+        [
+            "Seamless Cloning"
+        ],
+        {
+            "title_aux": "seamless-clone-comfyui"
+        }
+    ],
     "https://github.com/AlexXi19/ComfyUI-OpenAINode": [
         [
             "ImageWithPrompt",
@@ -778,14 +786,12 @@
     "https://github.com/JichaoLiang/Immortal_comfyUI": [
         [
             "AppendNode",
-            "ApplyVoiceConversion",
             "CombineVideos",
             "ImAppendFreeChatAction",
             "ImAppendImageActionNode",
             "ImAppendQuickbackNode",
             "ImAppendQuickbackVideoNode",
             "ImAppendVideoNode",
-            "ImApplyWav2lip",
             "ImDumpEntity",
             "ImDumpNode",
             "ImLoadPackage",
@@ -984,7 +990,7 @@
         [
             "AudioDurationNode",
             "ImageClipNode",
-            "SaveVideo"
+            "SaveVideoNode"
         ],
         {
             "title_aux": "ComfyUI-MoviePy"
@@ -1722,6 +1728,29 @@
             "title_aux": "brycegoh/comfyui-custom-nodes"
         }
     ],
+    "https://github.com/c0ffymachyne/ComfyUI_SignalProcessing": [
+        [
+            "SignalProcessingBaxandall3BandEQ",
+            "SignalProcessingBaxandallEQ",
+            "SignalProcessingConvolutionReverb",
+            "SignalProcessingFilter",
+            "SignalProcessingHarmonicsEnhancer",
+            "SignalProcessingLoadAudio",
+            "SignalProcessingLoudness",
+            "SignalProcessingMixdown",
+            "SignalProcessingNormalizer",
+            "SignalProcessingPadSynth",
+            "SignalProcessingPadSynthChoir",
+            "SignalProcessingPaulStretch",
+            "SignalProcessingPitchShifter",
+            "SignalProcessingSpectrogram",
+            "SignalProcessingStereoWidening",
+            "SignalProcessingWaveform"
+        ],
+        {
+            "title_aux": "ComfyUI Signal Processing [WIP]"
+        }
+    ],
     "https://github.com/celll1/cel_sampler": [
         [
             "latent_tracker"
@@ -2243,6 +2272,24 @@
             "title_aux": "guidance_interval"
         }
     ],
+    "https://github.com/esciron/ComfyUI-HunyuanVideoWrapper-Extended": [
+        [
+            "DownloadAndLoadHyVideoTextEncoder",
+            "HyVideoBlockSwap",
+            "HyVideoCustomPromptTemplate",
+            "HyVideoDecode",
+            "HyVideoEncode",
+            "HyVideoModelLoader",
+            "HyVideoSTG",
+            "HyVideoSampler",
+            "HyVideoTextEncode",
+            "HyVideoTorchCompileSettings",
+            "HyVideoVAELoader"
+        ],
+        {
+            "title_aux": "ComfyUI-HunyuanVideoWrapper-Extended [WIP]"
+        }
+    ],
     "https://github.com/evolox/ComfyUI-GeneraNodes": [
         [
             "Genera.BatchPreviewer",
@@ -2465,6 +2512,14 @@
             "title_aux": "ComfyUI-WaterMark-Detector"
         }
     ],
+    "https://github.com/hotpot-killer/ComfyUI_AlexNodes": [
+        [
+            "InstructPG"
+        ],
+        {
+            "title_aux": "ComfyUI_AlexNodes"
+        }
+    ],
     "https://github.com/houdinii/comfy-magick": [
         [
             "AdaptiveBlur",
@@ -2582,6 +2637,14 @@
         ],
         {
             "title_aux": "ComfyUI-LuminaNext [WIP]"
+        }
+    ],
+    "https://github.com/jefferyharrell/ComfyUI-JHXMP": [
+        [
+            "JHSaveImageWithXMPMetadata"
+        ],
+        {
+            "title_aux": "ComfyUI-JHXMP"
         }
     ],
     "https://github.com/jgbrblmd/ComfyUI-ComfyFluxSize": [
@@ -2733,35 +2796,6 @@
             "title_aux": "ComfyUI-Adapter [WIP]"
         }
     ],
-    "https://github.com/kadirnar/comfyui_hub": [
-        [
-            "CircularVAEDecode",
-            "CustomKSamplerAdvancedTile",
-            "JDC_AutoContrast",
-            "JDC_BlendImages",
-            "JDC_BrownNoise",
-            "JDC_Contrast",
-            "JDC_EqualizeGrey",
-            "JDC_GaussianBlur",
-            "JDC_GreyNoise",
-            "JDC_Greyscale",
-            "JDC_ImageLoader",
-            "JDC_ImageLoaderMeta",
-            "JDC_PinkNoise",
-            "JDC_Plasma",
-            "JDC_PlasmaSampler",
-            "JDC_PowerImage",
-            "JDC_RandNoise",
-            "JDC_ResizeFactor",
-            "LatentGaussianNoise",
-            "LatentToRGB",
-            "MathEncode",
-            "NoisyLatentPerlin"
-        ],
-        {
-            "title_aux": "comfyui_hub"
-        }
-    ],
     "https://github.com/kappa54m/ComfyUI_Usability": [
         [
             "KLoadImageByPath",
@@ -2841,9 +2875,11 @@
         [
             "DownloadAndLoadHyVideoTextEncoder",
             "HyVideoBlockSwap",
+            "HyVideoCustomPromptTemplate",
             "HyVideoDecode",
             "HyVideoEncode",
             "HyVideoModelLoader",
+            "HyVideoSTG",
             "HyVideoSampler",
             "HyVideoTextEncode",
             "HyVideoTorchCompileSettings",
@@ -2851,6 +2887,17 @@
         ],
         {
             "title_aux": "ComfyUI-HunyuanVideoWrapper [WIP]"
+        }
+    ],
+    "https://github.com/kijai/ComfyUI-MMAudio": [
+        [
+            "MMAudioFeatureUtilsLoader",
+            "MMAudioModelLoader",
+            "MMAudioSampler",
+            "MMAudioVoCoderLoader"
+        ],
+        {
+            "title_aux": "ComfyUI-MMAudio"
         }
     ],
     "https://github.com/kijai/ComfyUI-MochiWrapper": [
@@ -2912,6 +2959,7 @@
             "JKEasyDetailer",
             "JKEasyDetailer_Context",
             "JKEasyKSampler_Context",
+            "JKEasyWatermark",
             "JKInspireSchedulerAdapter",
             "JKLilContext",
             "JKMultiModelSamplerUnpatch",
@@ -2923,6 +2971,14 @@
         ],
         {
             "title_aux": "comfyui-jk-easy-nodes"
+        }
+    ],
+    "https://github.com/kuschanow/ComfyUI-SD-Slicer": [
+        [
+            "SdSlicer"
+        ],
+        {
+            "title_aux": "ComfyUI-SD-Slicer"
         }
     ],
     "https://github.com/kxh/ComfyUI-ImageUpscaleWithModelMultipleTimes": [
@@ -3537,12 +3593,36 @@
             "title_aux": "ComfyUI-clip-interrogator [WIP]"
         }
     ],
+    "https://github.com/pschroedl/ComfyUI-StreamDiffusion": [
+        [
+            "StreamDiffusionAccelerationConfig",
+            "StreamDiffusionAccelerationSampler",
+            "StreamDiffusionCheckpointLoader",
+            "StreamDiffusionConfig",
+            "StreamDiffusionDeviceConfig",
+            "StreamDiffusionLoraLoader",
+            "StreamDiffusionPrebuiltConfig",
+            "StreamDiffusionSimilarityFilterConfig",
+            "StreamDiffusionTensorRTEngineLoader"
+        ],
+        {
+            "title_aux": "ComfyUI-StreamDiffusion"
+        }
+    ],
     "https://github.com/pzzmyc/comfyui-sd3-simple-simpletuner": [
         [
             "sd not very simple simpletuner by hhy"
         ],
         {
             "title_aux": "comfyui-sd3-simple-simpletuner"
+        }
+    ],
+    "https://github.com/ralonsobeas/ComfyUI-HDRConversion": [
+        [
+            "HDRConversion"
+        ],
+        {
+            "title_aux": "ComfyUI-HDRConversion [WIP]"
         }
     ],
     "https://github.com/redhottensors/ComfyUI-ODE": [
@@ -3961,6 +4041,19 @@
             "title_aux": "Comfyui-zZzZz [UNSAFE]"
         }
     ],
+    "https://github.com/wjl0313/ComfyUI_KimNodes": [
+        [
+            "Crop_Paste",
+            "Distribute_Icons",
+            "IconDistributeByGrid",
+            "KimFilter",
+            "Text_Match",
+            "YOLO_Crop"
+        ],
+        {
+            "title_aux": "ComfyUI_KimNodes [WIP]"
+        }
+    ],
     "https://github.com/wormley/comfyui-wormley-nodes": [
         [
             "CheckpointVAELoaderSimpleText",
@@ -4018,18 +4111,6 @@
         ],
         {
             "title_aux": "Comfyui_image2prompt"
-        }
-    ],
-    "https://github.com/zmwv823/ComfyUI-Sana": [
-        [
-            "UL_SanaModelLoader",
-            "UL_SanaSampler",
-            "UL_SanaTextEncode",
-            "UL_SanaVAELoader",
-            "UL_SanaVAEProcess"
-        ],
-        {
-            "title_aux": "ComfyUI-Sana [WIP]"
         }
     ],
     "https://raw.githubusercontent.com/NeuralNotW0rk/ComfyUI-Waveform-Extensions/main/EXT_VariationUtils.py": [
