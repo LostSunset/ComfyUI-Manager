@@ -10,6 +10,48 @@
         },
         
 
+        
+        {
+            "author": "neuratech-ai",
+            "title": "ComfyUI-MultiGPU [NOT MAINTAINED]",
+            "reference": "https://github.com/neuratech-ai/ComfyUI-MultiGPU",
+            "files": [
+                "https://github.com/neuratech-ai/ComfyUI-MultiGPU"
+            ],
+            "install_type": "git-clone",
+            "description": "Experimental nodes for using multiple GPUs in a single ComfyUI workflow.\nThis extension adds new nodes for model loading that allow you to specify the GPU to use for each model. It monkey patches the memory management of ComfyUI in a hacky way and is neither a comprehensive solution nor a well-tested one. Use at your own risk.\nNote that this does not add parallelism. The workflow steps are still executed sequentially just on different GPUs. Any potential speedup comes from not having to constantly load and unload models from VRAM."
+        },
+        {
+            "author": "jefferyharrell",
+            "title": "ComfyUI-JHXMP [REMOVED]",
+            "reference": "https://github.com/jefferyharrell/ComfyUI-JHXMP",
+            "files": [
+                "https://github.com/jefferyharrell/ComfyUI-JHXMP"
+            ],
+            "install_type": "git-clone",
+            "description": "NODES: Save Image With XMP Metadata"
+        },
+        {
+            "author": "viperyl",
+            "title": "ComfyUI-BiRefNet [NOT MAINTAINED]",
+            "id": "comfyui-birefnet",
+            "reference": "https://github.com/viperyl/ComfyUI-BiRefNet",
+            "files": [
+                "https://github.com/viperyl/ComfyUI-BiRefNet"
+            ],
+            "install_type": "git-clone",
+            "description": "Bilateral Reference Network achieves SOTA result in multi Salient Object Segmentation dataset, this repo pack BiRefNet as ComfyUI nodes, and make this SOTA model easier use for everyone."
+        },
+        {
+            "author": "asagi4",
+            "title": "ComfyUI prompt control (LEGACY VERSION)",
+            "reference": "https://github.com/asagi4/comfyui-prompt-control-legacy",
+            "files": [
+                "https://github.com/asagi4/comfyui-prompt-control-legacy"
+            ],
+            "install_type": "git-clone",
+            "description": "WARNING: These nodes exist only to reproduce old workflows. They are unmaintained See https://github.com/asagi4/comfyui-prompt-control for the revised, current version of prompt control."
+        },
         {
             "author": "doomy23",
             "title": "ComfyUI-D00MYsNodes [REMOVED]",

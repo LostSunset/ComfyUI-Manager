@@ -11,9 +11,108 @@
 
 
 
-
-
-
+        {
+            "author": "dihan",
+            "title": "ComfyUI Random Keypoints for InstantID [WIP]",
+            "reference": "https://github.com/dihan/comfyui-random-kps",
+            "files": [
+                "https://github.com/dihan/comfyui-random-kps"
+            ],
+            "install_type": "git-clone",
+            "description": "A custom node for ComfyUI that generates random facial keypoints compatible with InstantID.\nNOTE: The files in the repo are not organized."
+        },
+        {
+            "author": "emranemran",
+            "title": "ComfyUI-FasterLivePortrait",
+            "reference": "https://github.com/emranemran/ComfyUI-FasterLivePortrait",
+            "files": [
+                "https://github.com/emranemran/ComfyUI-FasterLivePortrait"
+            ],
+            "install_type": "git-clone",
+            "description": "NODES: Load FasterLivePortrait Models, FasterLivePortrait Process"
+        },
+        {
+            "author": "kandy",
+            "title": "ComfyUI-KAndy",
+            "reference": "https://github.com/kandy/ComfyUI-KAndy",
+            "files": [
+                "https://github.com/kandy/ComfyUI-KAndy"
+            ],
+            "install_type": "git-clone",
+            "description": "NODES: Civit Prompt API, Load Image From Url, Civit Images API, KAndyNoiseCondition, KAndyImagesByCss"
+        },
+        {
+            "author": "StartHua",
+            "title": "Comfyui_leffa",
+            "reference": "https://github.com/StartHua/Comfyui_leffa",
+            "files": [
+                "https://github.com/StartHua/Comfyui_leffa"
+            ],
+            "install_type": "git-clone",
+            "description": "NODES: CXH_Leffa_Viton_Load, CXH_Leffa_Viton_Run"
+        },
+        {
+            "author": "logtd",
+            "title": "ComfyUI-HunyuanLoom [WIP]",
+            "id": "comfyui-42lux",
+            "reference": "https://github.com/logtd/ComfyUI-HunyuanLoom",
+            "files": [
+                "https://github.com/logtd/ComfyUI-HunyuanLoom"
+            ],
+            "install_type": "git-clone",
+            "description": "A set of nodes to edit videos using the Hunyuan Video model"
+        },   
+        {
+            "author": "jonnydolake",
+            "title": "ComfyUI-AIR-Nodes",
+            "reference": "https://github.com/jonnydolake/ComfyUI-AIR-Nodes",
+            "files": [
+                "https://github.com/jonnydolake/ComfyUI-AIR-Nodes"
+            ],
+            "install_type": "git-clone",
+            "description": "NODES: String List To Prompt Schedule, Force Minimum Batch Size, Target Location (Crop), Target Location (Paste)"
+        },
+        {
+            "author": "watarika",
+            "title": "ComfyUI-exit [UNSAFE]",
+            "reference": "https://github.com/watarika/ComfyUI-exit",
+            "files": [
+                "https://github.com/watarika/ComfyUI-exit"
+            ],
+            "install_type": "git-clone",
+            "description": "A custom node that terminates ComfyUI after a specified number of seconds. Use this node if you want Google Colab to automatically terminate after mass generation. It is necessary to disconnect and delete the Google Colab runtime on the Notebook side."
+        },
+        {
+            "author": "Eagle-CN",
+            "title": "ComfyUI-Addoor [UNSAFE]",
+            "reference": "https://github.com/Eagle-CN/ComfyUI-Addoor",
+            "files": [
+                "https://github.com/Eagle-CN/ComfyUI-Addoor"
+            ],
+            "install_type": "git-clone",
+            "description": "NODES: AD_BatchImageLoadFromDir, AD_DeleteLocalAny, AD_TextListToString, AD_AnyFileList, AD_ZipSave, AD_ImageSaver, AD_FluxTrainStepMath, AD_TextSaver, AD_PromptReplace.\nNOTE: This node pack includes nodes that can delete arbitrary files."
+        },
+        {
+            "author": "backearth1",
+            "title": "Comfyui-MiniMax-Video [WIP]",
+            "reference": "https://github.com/backearth1/Comfyui-MiniMax-Video",
+            "files": [
+                "https://github.com/backearth1/Comfyui-MiniMax-Video"
+            ],
+            "install_type": "git-clone",
+            "description": "A ComfyUI extension that integrates MiniMax AI's image-to-video and text-to-video generation capabilities, allowing users to easily convert static images into dynamic videos.\nNOTE: The files in the repo are not organized."
+        },
+        {
+            "author": "FinetunersAI",
+            "title": "Fast Group Link [WIP]",
+            "id": "fast-group-link",
+            "reference": "https://github.com/FinetunersAI/comfyui-fast-group-link",
+            "files": [
+                "https://github.com/FinetunersAI/comfyui-fast-group-link"
+            ],
+            "install_type": "git-clone",
+            "description": "Link and control ComfyUI groups with a simple ON/OFF toggle. Control multiple groups at once with an easy-to-use interface.\nNOTE: The files in the repo are not organized."
+        },
         {
             "author": "kijai",
             "title": "ComfyUI-MMAudio",
@@ -103,16 +202,6 @@
             ],
             "install_type": "git-clone",
             "description": "NODES: StreamDiffusionConfig, StreamDiffusionAccelerationSampler, StreamDiffusionLoraLoader, StreamDiffusionAccelerationConfig, StreamDiffusionSimilarityFilterConfig, StreamDiffusionModelLoader, ..."
-        },  
-        {
-            "author": "jefferyharrell",
-            "title": "ComfyUI-JHXMP",
-            "reference": "https://github.com/jefferyharrell/ComfyUI-JHXMP",
-            "files": [
-                "https://github.com/jefferyharrell/ComfyUI-JHXMP"
-            ],
-            "install_type": "git-clone",
-            "description": "NODES: Save Image With XMP Metadata"
         },
         {
             "author": "c0ffymachyne",
@@ -123,16 +212,6 @@
             ],
             "install_type": "git-clone",
             "description": "This repo contains signal processing nodes for ComfyUI allowing for audio manipulation."
-        },
-        {
-            "author": "wjl0313",
-            "title": "ComfyUI_KimNodes [WIP]",
-            "reference": "https://github.com/wjl0313/ComfyUI_KimNodes",
-            "files": [
-                "https://github.com/wjl0313/ComfyUI_KimNodes"
-            ],
-            "install_type": "git-clone",
-            "description": "NODES: Distribute_Icons, IconDistributeByGrid, YOLO_Crop, Crop_Paste, KimFilter\nNOTE: The files in the repo are not organized."
         },
         {
             "author": "Aksaz",
@@ -172,7 +251,7 @@
                 "https://github.com/ShahFaisalWani/ComfyUI-Mojen-Nodeset"
             ],
             "install_type": "git-clone",
-            "description": "NODES: MojenLogPercent, MojenTagProcessor, MojenStyleExtractor, MojenAnalyzeProcessor"
+            "description": "A collection of powerful, versatile, and community-driven custom nodes for ComfyUI, designed to elevate AI workflows!"
         },
         {
             "author": "kijai",
@@ -428,16 +507,6 @@
             "description": "In production environments, images are usually saved on storage servers such as S3, rather than local folders. So the method of placing images in local folders using ComfyUI's native LoadImage and SaveImage nodes cannot be used as a deployment service method, but can only be used as a temporary storage place for images. This requires a way to delete images from the input and output folders.\nThis node is used to delete images from the input and output folders. It is recommended to use this node through api call in the backend after the image processing is completed.[w/Users can use the file deletion feature through the workflow.]"
         },
         {
-            "author": "kostenickj",
-            "title": "comfyui-jk-easy-nodes",
-            "reference": "https://github.com/kostenickj/comfyui-jk-easy-nodes",
-            "files": [
-                "https://github.com/kostenickj/comfyui-jk-easy-nodes"
-            ],
-            "install_type": "git-clone",
-            "description": "NODES:JK Easy Prompt, JK Easy HiRes Fix"
-        },
-        {
             "author": "yorkane",
             "title": "Comfy UI Robe Nodes [UNSAFE]",
             "reference": "https://github.com/RobeSantoro/ComfyUI-RobeNodes",
@@ -620,16 +689,6 @@
             "description": "NODES:CFGControl_SKIPCFG"
         },
         {
-            "author": "PnthrLeo",
-            "title": "comfyUI-image-search",
-            "reference": "https://github.com/PnthrLeo/comfyUI-image-search",
-            "files": [
-                "https://github.com/PnthrLeo/comfyUI-image-search"
-            ],
-            "install_type": "git-clone",
-            "description": "NODES:CloseImagesSearcher"
-        },
-        {
             "author": "Clelstyn",
             "title": "ComfyUI-Inpaint_with_Detailer",
             "reference": "https://github.com/Clelstyn/ComfyUI-Inpaint_with_Detailer",
@@ -678,16 +737,6 @@
             ],
             "install_type": "git-clone",
             "description": "Custom nodes for ComfyUI created for some of my workflows.\nLLM All-in-One Node, String Splitter Node, LoRA Switcher Node, Image Overlay Node"
-        },
-        {
-            "author": "DoctorDiffusion",
-            "title": "DoctorDiffusion [WIP]",
-            "reference": "https://github.com/DoctorDiffusion/Doctor-Tools",
-            "files": [
-                "https://github.com/DoctorDiffusion/Doctor-Tools"
-            ],
-            "install_type": "git-clone",
-            "description": "NODES:Final Frame Selector, Video Merge.\nNOTE: The files in the repo are not organized."
         },
         {
             "author": "m-ai-studio",
@@ -1464,16 +1513,6 @@
             "description": "Browse to this endpoint to reload custom nodes for more streamlined development:\nhttp://127.0.0.1:8188/node_dev/reload/<module_name>"
         },
         {
-            "author": "sebord",
-            "title": "ComfyUI-LMCQ [WIP]",
-            "reference": "https://github.com/sebord/ComfyUI-LMCQ",
-            "files": [
-                "https://github.com/sebord/ComfyUI-LMCQ"
-            ],
-            "install_type": "git-clone",
-            "description": "ComfyUI small node toolkit, this toolkit is mainly to update some practical small nodes, to make a contribution to the comfyui ecosystem, PS: 'LMCQ' is the abbreviation of the team name\nNOTE: The files in the repo are not organized, which may lead to update issues."
-        },
-        {
             "author": "ChrisColeTech",
             "title": "ComfyUI-Get-Random-File [UNSAFE]",
             "reference": "https://github.com/ChrisColeTech/ComfyUI-Get-Random-File",
@@ -1563,16 +1602,6 @@
             ],
             "install_type": "git-clone",
             "description": "ComfyUI_EnvAutopsyAPI is a powerful debugging tool designed for ComfyUI that provides in-depth analysis of your environment and dependencies through an API interface. This tool allows you to inspect environment variables, pip packages, and dependency trees, making it easier to diagnose and resolve issues in your ComfyUI setup.[w/This tool may expose sensitive system information if used on a public server. MUST READ [a/THIS](https://github.com/chrisdreid/ComfyUI_EnvAutopsyAPI#%EF%B8%8F-warning-security-risk-%EF%B8%8F) before install.]"
-        },
-        {
-            "author": "neuratech-ai",
-            "title": "ComfyUI-MultiGPU",
-            "reference": "https://github.com/neuratech-ai/ComfyUI-MultiGPU",
-            "files": [
-                "https://github.com/neuratech-ai/ComfyUI-MultiGPU"
-            ],
-            "install_type": "git-clone",
-            "description": "Experimental nodes for using multiple GPUs in a single ComfyUI workflow.\nThis extension adds new nodes for model loading that allow you to specify the GPU to use for each model. It monkey patches the memory management of ComfyUI in a hacky way and is neither a comprehensive solution nor a well-tested one. Use at your own risk.\nNote that this does not add parallelism. The workflow steps are still executed sequentially just on different GPUs. Any potential speedup comes from not having to constantly load and unload models from VRAM."
         },
         {
             "author": "Futureversecom",
@@ -2561,10 +2590,10 @@
         },
         {
             "author": "nat-chan",
-            "title": "comfyui-in-memory-transceiver",
-            "reference": "https://github.com/nat-chan/comfyui-in-memory-transceiver",
+            "title": "Transceiver📡",
+            "reference": "https://github.com/nat-chan/transceiver",
             "files": [
-                "https://github.com/nat-chan/comfyui-in-memory-transceiver"
+                "https://github.com/nat-chan/transceiver"
             ],
             "install_type": "git-clone",
             "description": "Why? When processing a large number of requests, the SaveImage and LoadImage nodes may be IO-limited, and using shared memory improves performance by passing images only through memory access, not through IO."
