@@ -6,6 +6,7 @@ import re
 import shutil
 import configparser
 import platform
+from datetime import datetime
 
 import git
 from git.remote import RemoteProgress
@@ -14,6 +15,7 @@ from tqdm.auto import tqdm
 import time
 import yaml
 import zipfile
+import traceback
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 orig_print = print
@@ -28,19 +30,58 @@ sys.path.append(glob_path)
 
 import cm_global
 import cnr_utils
-from manager_util import *
+import manager_util
+import manager_downloader
 
 
-version_code = [3, 0]
+version_code = [3, 1]
 version_str = f"V{version_code[0]}.{version_code[1]}" + (f'.{version_code[2]}' if len(version_code) > 2 else '')
 
 
 DEFAULT_CHANNEL = "https://raw.githubusercontent.com/ltdrdata/ComfyUI-Manager/main"
 
 
-custom_nodes_path = os.path.abspath(os.path.join(comfyui_manager_path, '..'))
+default_custom_nodes_path = None
+
+def get_default_custom_nodes_path():
+    global default_custom_nodes_path
+    if default_custom_nodes_path is None:
+        try:
+            import folder_paths
+            default_custom_nodes_path = folder_paths.get_folder_paths("custom_nodes")[0]
+        except:
+            default_custom_nodes_path = os.path.abspath(os.path.join(manager_util.comfyui_manager_path, '..'))
+
+    return default_custom_nodes_path
+
+
+def get_custom_nodes_paths():
+        try:
+            import folder_paths
+            return folder_paths.get_folder_paths("custom_nodes")
+        except:
+            custom_nodes_path = os.path.abspath(os.path.join(manager_util.comfyui_manager_path, '..'))
+            return [custom_nodes_path]
+
+
+def get_comfyui_tag():
+    repo = git.Repo(comfy_path)
+    try:
+        return repo.git.describe('--tags')
+    except:
+        return None
+
 
 invalid_nodes = {}
+
+
+def extract_base_custom_nodes_dir(x:str):
+    if os.path.dirname(x).endswith('.disabled'):
+        return os.path.dirname(os.path.dirname(x))
+    elif x.endswith('.disabled'):
+        return os.path.dirname(x)
+    else:
+        return os.path.dirname(x)
 
 
 def check_invalid_nodes():
@@ -48,7 +89,6 @@ def check_invalid_nodes():
 
     try:
         import folder_paths
-        node_paths = folder_paths.get_folder_paths("custom_nodes")
     except:
         try:
             sys.path.append(comfy_path)
@@ -81,8 +121,8 @@ def check_invalid_nodes():
             check(disabled_dir)
 
     if len(invalid_nodes):
-        print(f"\n-------------------- ComfyUI-Manager invalid nodes notice ----------------")
-        print(f"\nNodes requiring reinstallation have been detected:\n(Directly delete the corresponding path and reinstall.)\n")
+        print("\n-------------------- ComfyUI-Manager invalid nodes notice ----------------")
+        print("\nNodes requiring reinstallation have been detected:\n(Directly delete the corresponding path and reinstall.)\n")
 
         for x in invalid_nodes.values():
             print(x)
@@ -92,12 +132,57 @@ def check_invalid_nodes():
 
 comfy_path = os.environ.get('COMFYUI_PATH')
 if comfy_path is None:
-    comfy_path = os.path.abspath(os.path.join(custom_nodes_path, '..'))
+    try:
+        import folder_paths
+        comfy_path = os.path.join(os.path.dirname(folder_paths.__file__))
+    except:
+        comfy_path = os.path.abspath(os.path.join(manager_util.comfyui_manager_path, '..', '..'))
 
-channel_list_path = os.path.join(comfyui_manager_path, 'channels.list')
-config_path = os.path.join(comfyui_manager_path, "config.ini")
-startup_script_path = os.path.join(comfyui_manager_path, "startup-scripts")
-git_script_path = os.path.join(comfyui_manager_path, "git_helper.py")
+
+channel_list_template_path = os.path.join(manager_util.comfyui_manager_path, 'channels.list.template')
+git_script_path = os.path.join(manager_util.comfyui_manager_path, "git_helper.py")
+
+manager_files_path = None
+manager_config_path = None
+manager_channel_list_path = None
+manager_startup_script_path = None
+manager_snapshot_path = None
+manager_pip_overrides_path = None
+
+def update_user_directory(user_dir):
+    global manager_files_path
+    global manager_config_path
+    global manager_channel_list_path
+    global manager_startup_script_path
+    global manager_snapshot_path
+    global manager_pip_overrides_path
+
+    manager_files_path = os.path.abspath(os.path.join(user_dir, 'default', 'ComfyUI-Manager'))
+    if not os.path.exists(manager_files_path):
+        os.makedirs(manager_files_path)
+
+    manager_snapshot_path = os.path.join(manager_files_path, "snapshots")
+    if not os.path.exists(manager_snapshot_path):
+        os.makedirs(manager_snapshot_path)
+
+    manager_startup_script_path = os.path.join(manager_files_path, "startup-scripts")
+    if not os.path.exists(manager_startup_script_path):
+        os.makedirs(manager_startup_script_path)
+
+    manager_config_path = os.path.join(manager_files_path, 'config.ini')
+    manager_channel_list_path = os.path.join(manager_files_path, 'channels.list')
+    manager_pip_overrides_path = os.path.join(manager_files_path, "pip_overrides.json")
+
+try:
+    import folder_paths
+    update_user_directory(folder_paths.get_user_directory())
+
+except Exception:
+    # fallback:
+    # This case is only possible when running with cm-cli, and in practice, this case is not actually used.
+    update_user_directory(os.path.abspath(manager_util.comfyui_manager_path))
+
+
 cached_config = None
 js_path = None
 
@@ -109,7 +194,6 @@ comfy_ui_commit_datetime = datetime(1900, 1, 1, 0, 0, 0)
 
 channel_dict = None
 channel_list = None
-pip_map = None
 
 
 def remap_pip_package(pkg):
@@ -119,34 +203,6 @@ def remap_pip_package(pkg):
         return res
     else:
         return pkg
-
-
-def get_installed_packages():
-    global pip_map
-
-    if pip_map is None:
-        try:
-            result = subprocess.check_output([sys.executable, '-m', 'pip', 'list'], universal_newlines=True)
-
-            pip_map = {}
-            for line in result.split('\n'):
-                x = line.strip()
-                if x:
-                    y = line.split()
-                    if y[0] == 'Package' or y[0].startswith('-'):
-                        continue
-
-                    pip_map[y[0]] = y[1]
-        except subprocess.CalledProcessError as e:
-            print(f"[ComfyUI-Manager] Failed to retrieve the information of installed pip packages.")
-            return set()
-
-    return pip_map
-
-
-def clear_pip_cache():
-    global pip_map
-    pip_map = None
 
 
 def is_blacklisted(name):
@@ -162,14 +218,14 @@ def is_blacklisted(name):
         return True
 
     if name in cm_global.pip_downgrade_blacklist:
-        pips = get_installed_packages()
+        pips = manager_util.get_installed_packages()
 
         if match is None:
             if name in pips:
                 return True
         elif match.group(2) in ['<=', '==', '<']:
             if name in pips:
-                if StrictVersion(pips[name]) >= StrictVersion(match.group(3)):
+                if manager_util.StrictVersion(pips[name]) >= manager_util.StrictVersion(match.group(3)):
                     return True
 
     return False
@@ -191,22 +247,24 @@ def is_installed(name):
         return True
 
     if name in cm_global.pip_downgrade_blacklist:
-        pips = get_installed_packages()
+        pips = manager_util.get_installed_packages()
 
         if match is None:
             if name in pips:
                 return True
         elif match.group(2) in ['<=', '==', '<']:
             if name in pips:
-                if StrictVersion(pips[name]) >= StrictVersion(match.group(3)):
+                if manager_util.StrictVersion(pips[name]) >= manager_util.StrictVersion(match.group(3)):
                     print(f"[ComfyUI-Manager] skip black listed pip installation: '{name}'")
                     return True
 
-    return name.lower() in get_installed_packages()
+    return name.lower() in manager_util.get_installed_packages()
 
 
 def normalize_channel(channel):
-    if channel is None:
+    if channel == 'local':
+        return channel
+    elif channel is None:
         return None
     elif channel.startswith('https://'):
         return channel
@@ -248,6 +306,25 @@ class ManagedResult:
     def with_postinstall(self, postinstall):
         self.postinstall = postinstall
         return self
+
+
+def get_commit_hash(fullpath):
+    git_head = os.path.join(fullpath, '.git', 'HEAD')
+    if os.path.exists(git_head):
+        with open(git_head) as f:
+            line = f.readline()
+
+            if line.startswith("ref: "):
+                ref = os.path.join(fullpath, '.git', line[5:].strip())
+                if os.path.exists(ref):
+                    with open(ref) as f2:
+                        return f2.readline().strip()
+                else:
+                    return "unknown"
+            else:
+                return line
+
+    return "unknown"
 
 
 class UnifiedManager:
@@ -640,19 +717,21 @@ class UnifiedManager:
                 self.repo_cnr_map[normalized_url] = x
 
         # reload node status info from custom_nodes/*
-        for x in os.listdir(custom_nodes_path):
-            fullpath = os.path.join(custom_nodes_path, x)
-            if os.path.isdir(fullpath):
-                if x not in ['__pycache__', '.disabled']:
-                    self.update_cache_at_path(fullpath, is_disabled=False)
+        for custom_nodes_path in folder_paths.get_folder_paths('custom_nodes'):
+            for x in os.listdir(custom_nodes_path):
+                fullpath = os.path.join(custom_nodes_path, x)
+                if os.path.isdir(fullpath):
+                    if x not in ['__pycache__', '.disabled']:
+                        self.update_cache_at_path(fullpath, is_disabled=False)
 
         # reload node status info from custom_nodes/.disabled/*
-        disabled_dir = os.path.join(custom_nodes_path, '.disabled')
-        if os.path.exists(disabled_dir):
-            for x in os.listdir(disabled_dir):
-                fullpath = os.path.join(disabled_dir, x)
-                if os.path.isdir(fullpath):
-                    self.update_cache_at_path(fullpath, is_disabled=True)
+        for custom_nodes_path in folder_paths.get_folder_paths('custom_nodes'):
+            disabled_dir = os.path.join(custom_nodes_path, '.disabled')
+            if os.path.exists(disabled_dir):
+                for x in os.listdir(disabled_dir):
+                    fullpath = os.path.join(disabled_dir, x)
+                    if os.path.isdir(fullpath):
+                        self.update_cache_at_path(fullpath, is_disabled=True)
 
     @staticmethod
     async def load_nightly(channel, mode):
@@ -732,6 +811,7 @@ class UnifiedManager:
         else:
             if os.path.exists(requirements_path) and not no_deps:
                 print("Install: pip packages")
+                pip_fixer = manager_util.PIPFixer(manager_util.get_installed_packages())
                 res = True
                 with open(requirements_path, "r") as requirements_file:
                     for line in requirements_file:
@@ -741,20 +821,22 @@ class UnifiedManager:
                             install_cmd = [sys.executable, "-m", "pip", "install", package_name]
                             if package_name.strip() != "" and not package_name.startswith('#'):
                                 res = res and try_install_script(url, repo_path, install_cmd, instant_execution=instant_execution)
+
+                pip_fixer.fix_broken()
                 return res
 
             if os.path.exists(install_script_path) and install_script_path not in self.processed_install:
                 self.processed_install.add(install_script_path)
-                print(f"Install: install script")
+                print("Install: install script")
                 install_cmd = [sys.executable, "install.py"]
                 return try_install_script(url, repo_path, install_cmd, instant_execution=instant_execution)
 
         return True
 
     def reserve_cnr_switch(self, target, zip_url, from_path, to_path, no_deps):
-        script_path = os.path.join(startup_script_path, "install-scripts.txt")
+        script_path = os.path.join(manager_startup_script_path, "install-scripts.txt")
         with open(script_path, "a") as file:
-            obj = [target, "#LAZY-CNR-SWITCH-SCRIPT", zip_url, from_path, to_path, no_deps, custom_nodes_path, sys.executable]
+            obj = [target, "#LAZY-CNR-SWITCH-SCRIPT", zip_url, from_path, to_path, no_deps, get_default_custom_nodes_path(), sys.executable]
             file.write(f"{obj}\n")
 
         print(f"Installation reserved: {target}")
@@ -762,7 +844,7 @@ class UnifiedManager:
         return True
 
     def reserve_migration(self, moves):
-        script_path = os.path.join(startup_script_path, "install-scripts.txt")
+        script_path = os.path.join(manager_startup_script_path, "install-scripts.txt")
         with open(script_path, "a") as file:
             obj = ["", "#LAZY-MIGRATION", moves]
             file.write(f"{obj}\n")
@@ -809,7 +891,7 @@ class UnifiedManager:
         zip_url = node_info.download_url
         from_path = self.active_nodes[node_id][1]
         target = f"{node_id}@{version_spec.replace('.', '_')}"
-        to_path = os.path.join(custom_nodes_path, target)
+        to_path = os.path.join(get_default_custom_nodes_path(), target)
 
         def postinstall():
             return self.reserve_cnr_switch(target, zip_url, from_path, to_path, no_deps)
@@ -840,12 +922,12 @@ class UnifiedManager:
             return ManagedResult('skip').with_msg("Up to date")
 
         archive_name = f"CNR_temp_{str(uuid.uuid4())}.zip"  # should be unpredictable name - security precaution
-        download_path = os.path.join(custom_nodes_path, archive_name)
-        download_url(node_info.download_url, custom_nodes_path, archive_name)
+        download_path = os.path.join(get_default_custom_nodes_path(), archive_name)
+        manager_downloader.download_url(node_info.download_url, get_default_custom_nodes_path(), archive_name)
 
         # 2. extract files into <node_id>@<cur_ver>
         install_path = self.active_nodes[node_id][1]
-        extracted = cnr_utils.extract_package_as_zip(download_path, install_path)
+        extracted = manager_util.extract_package_as_zip(download_path, install_path)
         os.remove(download_path)
 
         if extracted is None:
@@ -875,7 +957,7 @@ class UnifiedManager:
                     os.rmdir(x)
 
         # 5. rename dir name <node_id>@<prev_ver> ==> <node_id>@<cur_ver>
-        new_install_path = os.path.join(custom_nodes_path, f"{node_id}@{version_spec.replace('.', '_')}")
+        new_install_path = os.path.join(get_default_custom_nodes_path(), f"{node_id}@{version_spec.replace('.', '_')}")
         print(f"'{install_path}' is moved to '{new_install_path}'")
         shutil.move(install_path, new_install_path)
 
@@ -931,14 +1013,16 @@ class UnifiedManager:
                 return result.fail(f'Specified inactive node not exists: {node_id}@unknown')
             from_path = repo_and_path[1]
             # NOTE: Keep original name as possible if unknown node
-            # to_path = os.path.join(custom_nodes_path, f"{node_id}@unknown")
-            to_path = os.path.join(custom_nodes_path, node_id)
+            # to_path = os.path.join(get_default_custom_nodes_path(), f"{node_id}@unknown")
+            base_path = extract_base_custom_nodes_dir(from_path)
+            to_path = os.path.join(base_path, node_id)
         elif version_spec == 'nightly':
             self.unified_disable(node_id, False)
             from_path = self.nightly_inactive_nodes.get(node_id)
             if from_path is None:
                 return result.fail(f'Specified inactive node not exists: {node_id}@nightly')
-            to_path = os.path.join(custom_nodes_path, f"{node_id}@nightly")
+            base_path = extract_base_custom_nodes_dir(from_path)
+            to_path = os.path.join(base_path, f"{node_id}@nightly")
         elif version_spec is not None:
             self.unified_disable(node_id, False)
             cnr_info = self.cnr_inactive_nodes.get(node_id)
@@ -953,7 +1037,8 @@ class UnifiedManager:
                 return result.fail(f'Specified inactive node not exists: {node_id}@{version_spec}')
 
             from_path = cnr_info[version_spec]
-            to_path = os.path.join(custom_nodes_path, f"{node_id}@{version_spec.replace('.', '_')}")
+            base_path = extract_base_custom_nodes_dir(from_path)
+            to_path = os.path.join(base_path, f"{node_id}@{version_spec.replace('.', '_')}")
 
         if from_path is None or not os.path.exists(from_path):
             return result.fail(f'Specified inactive node path not exists: {from_path}')
@@ -990,12 +1075,15 @@ class UnifiedManager:
 
         if is_unknown:
             repo_and_path = self.unknown_active_nodes.get(node_id)
-            # NOTE: Keep original name as possible if unknown node
-            # to_path = os.path.join(custom_nodes_path, '.disabled', f"{node_id}@unknown")
-            to_path = os.path.join(custom_nodes_path, '.disabled', node_id)
 
             if repo_and_path is None or not os.path.exists(repo_and_path[1]):
                 return result.fail(f'Specified active node not exists: {node_id}')
+
+            base_path = extract_base_custom_nodes_dir(repo_and_path[1])
+
+            # NOTE: Keep original name as possible if unknown node
+            # to_path = os.path.join(get_default_custom_nodes_path(), '.disabled', f"{node_id}@unknown")
+            to_path = os.path.join(base_path, '.disabled', node_id)
 
             shutil.move(repo_and_path[1], to_path)
             result.append((repo_and_path[1], to_path))
@@ -1010,7 +1098,8 @@ class UnifiedManager:
         if ver_and_path is None or not os.path.exists(ver_and_path[1]):
             return result.fail(f'Specified active node not exists: {node_id}')
 
-        to_path = os.path.join(custom_nodes_path, '.disabled', f"{node_id}@{ver_and_path[0].replace('.', '_')}")
+        base_path = extract_base_custom_nodes_dir(ver_and_path[1])
+        to_path = os.path.join(base_path, '.disabled', f"{node_id}@{ver_and_path[0].replace('.', '_')}")
         shutil.move(ver_and_path[1], to_path)
         result.append((ver_and_path[1], to_path))
 
@@ -1093,20 +1182,20 @@ class UnifiedManager:
             return result.fail(f'not available node: {node_id}@{version_spec}')
 
         archive_name = f"CNR_temp_{str(uuid.uuid4())}.zip"  # should be unpredictable name - security precaution
-        download_path = os.path.join(custom_nodes_path, archive_name)
+        download_path = os.path.join(get_default_custom_nodes_path(), archive_name)
 
         # re-download. I cannot trust existing file.
         if os.path.exists(download_path):
             os.remove(download_path)
 
         # install_path
-        install_path = os.path.join(custom_nodes_path, f"{node_id}@{version_spec.replace('.', '_')}")
+        install_path = os.path.join(get_default_custom_nodes_path(), f"{node_id}@{version_spec.replace('.', '_')}")
         if os.path.exists(install_path):
             return result.fail(f'Install path already exists: {install_path}')
 
-        download_url(node_info.download_url, custom_nodes_path, archive_name)
+        manager_downloader.download_url(node_info.download_url, get_default_custom_nodes_path(), archive_name)
         os.makedirs(install_path, exist_ok=True)
-        extracted = cnr_utils.extract_package_as_zip(download_path, install_path)
+        extracted = manager_util.extract_package_as_zip(download_path, install_path)
         os.remove(download_path)
         result.to_path = install_path
 
@@ -1146,7 +1235,7 @@ class UnifiedManager:
 
             # Clone the repository from the remote URL
             if not instant_execution and platform.system() == 'Windows':
-                res = manager_funcs.run_script([sys.executable, git_script_path, "--clone", custom_nodes_path, url, repo_path], cwd=custom_nodes_path)
+                res = manager_funcs.run_script([sys.executable, git_script_path, "--clone", get_default_custom_nodes_path(), url, repo_path], cwd=get_default_custom_nodes_path())
                 if res != 0:
                     return result.fail(f"Failed to clone repo: {url}")
             else:
@@ -1195,16 +1284,16 @@ class UnifiedManager:
             remote.fetch()
         except Exception as e:
             if 'detected dubious' in str(e):
-                print(f"[ComfyUI-Manager] Try fixing 'dubious repository' error on 'ComfyUI' repository")
+                print("[ComfyUI-Manager] Try fixing 'dubious repository' error on 'ComfyUI' repository")
                 safedir_path = comfy_path.replace('\\', '/')
                 subprocess.run(['git', 'config', '--global', '--add', 'safe.directory', safedir_path])
                 try:
                     remote.fetch()
                 except Exception:
-                    print(f"\n[ComfyUI-Manager] Failed to fixing repository setup. Please execute this command on cmd: \n"
-                          f"-----------------------------------------------------------------------------------------\n"
+                    print("\n[ComfyUI-Manager] Failed to fixing repository setup. Please execute this command on cmd: \n"
+                          "-----------------------------------------------------------------------------------------\n"
                           f'git config --global --add safe.directory "{safedir_path}"\n'
-                          f"-----------------------------------------------------------------------------------------\n")
+                          "-----------------------------------------------------------------------------------------\n")
 
         commit_hash = repo.head.commit.hexsha
         remote_commit_hash = repo.refs[f'{remote_name}/{branch_name}'].object.hexsha
@@ -1284,9 +1373,9 @@ class UnifiedManager:
                     self.unified_disable(node_id, False)
 
             if version_spec == 'unknown':
-                to_path = os.path.abspath(os.path.join(custom_nodes_path, node_id))    # don't attach @unknown
+                to_path = os.path.abspath(os.path.join(get_default_custom_nodes_path(), node_id))    # don't attach @unknown
             else:
-                to_path = os.path.abspath(os.path.join(custom_nodes_path, f"{node_id}@{version_spec.replace('.', '_')}"))
+                to_path = os.path.abspath(os.path.join(get_default_custom_nodes_path(), f"{node_id}@{version_spec.replace('.', '_')}"))
             res = self.repo_install(repo_url, to_path, instant_execution=instant_execution, no_deps=no_deps, return_postinstall=return_postinstall)
             if res.result:
                 if version_spec == 'unknown':
@@ -1325,7 +1414,7 @@ class UnifiedManager:
         await self.reload('cache')
         await self.get_custom_nodes('default', 'cache')
 
-        print(f"Migration: STAGE 1")
+        print("Migration: STAGE 1")
         moves = []
 
         # migrate nightly inactive
@@ -1333,10 +1422,10 @@ class UnifiedManager:
             if v.endswith('@nightly'):
                 continue
 
-            new_path = os.path.join(custom_nodes_path, '.disabled', f"{x}@nightly")
+            new_path = os.path.join(get_default_custom_nodes_path(), '.disabled', f"{x}@nightly")
             moves.append((v, new_path))
 
-        print(f"Migration: STAGE 2")
+        print("Migration: STAGE 2")
         # migrate active nodes
         for x, v in self.active_nodes.items():
             if v[0] not in ['nightly']:
@@ -1345,12 +1434,12 @@ class UnifiedManager:
             if v[1].endswith('@nightly'):
                 continue
 
-            new_path = os.path.join(custom_nodes_path, f"{x}@nightly")
+            new_path = os.path.join(get_default_custom_nodes_path(), f"{x}@nightly")
             moves.append((v[1], new_path))
 
         self.reserve_migration(moves)
 
-        print(f"DONE (Migration reserved)")
+        print("DONE (Migration reserved)")
 
 
 unified_manager = UnifiedManager()
@@ -1362,10 +1451,10 @@ def get_channel_dict():
     if channel_dict is None:
         channel_dict = {}
 
-        if not os.path.exists(channel_list_path):
-            shutil.copy(channel_list_path+'.template', channel_list_path)
+        if not os.path.exists(manager_channel_list_path):
+            shutil.copy(channel_list_template_path, manager_channel_list_path)
 
-        with open(os.path.join(comfyui_manager_path, 'channels.list'), 'r') as file:
+        with open(manager_channel_list_path, 'r') as file:
             channels = file.read()
             for x in channels.split('\n'):
                 channel_info = x.split("::")
@@ -1427,14 +1516,19 @@ def write_config():
         'security_level': get_config()['security_level'],
         'skip_migration_check': get_config()['skip_migration_check'],
     }
-    with open(config_path, 'w') as configfile:
+
+    directory = os.path.dirname(manager_config_path)
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+
+    with open(manager_config_path, 'w') as configfile:
         config.write(configfile)
 
 
 def read_config():
     try:
         config = configparser.ConfigParser()
-        config.read(config_path)
+        config.read(manager_config_path)
         default_conf = config['default']
 
         # policy migration: disable_unsecure_features -> security_level
@@ -1500,10 +1594,10 @@ def switch_to_default_branch(repo):
 
 def try_install_script(url, repo_path, install_cmd, instant_execution=False):
     if not instant_execution and ((len(install_cmd) > 0 and install_cmd[0].startswith('#')) or (platform.system() == "Windows" and comfy_ui_commit_datetime.date() >= comfy_ui_required_commit_datetime.date())):
-        if not os.path.exists(startup_script_path):
-            os.makedirs(startup_script_path)
+        if not os.path.exists(manager_startup_script_path):
+            os.makedirs(manager_startup_script_path)
 
-        script_path = os.path.join(startup_script_path, "install-scripts.txt")
+        script_path = os.path.join(manager_startup_script_path, "install-scripts.txt")
         with open(script_path, "a") as file:
             obj = [repo_path] + install_cmd
             file.write(f"{obj}\n")
@@ -1523,7 +1617,7 @@ def try_install_script(url, repo_path, install_cmd, instant_execution=False):
                 if comfy_ui_commit_datetime.date() < comfy_ui_required_commit_datetime.date():
                     print("\n\n###################################################################")
                     print(f"[WARN] ComfyUI-Manager: Your ComfyUI version ({comfy_ui_revision})[{comfy_ui_commit_datetime.date()}] is too old. Please update to the latest version.")
-                    print(f"[WARN] The extension installation feature may not work properly in the current installed ComfyUI version on Windows environment.")
+                    print("[WARN] The extension installation feature may not work properly in the current installed ComfyUI version on Windows environment.")
                     print("###################################################################\n\n")
             except:
                 pass
@@ -1548,7 +1642,7 @@ def __win_check_git_update(path, do_fetch=False, do_update=False):
 
     new_env = os.environ.copy()
     new_env["COMFYUI_PATH"] = comfy_path
-    process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=custom_nodes_path)
+    process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=get_default_custom_nodes_path())
     output, _ = process.communicate()
     output = output.decode('utf-8').strip()
 
@@ -1564,7 +1658,7 @@ def __win_check_git_update(path, do_fetch=False, do_update=False):
             output, _ = process.communicate()
             output = output.decode('utf-8').strip()
         except Exception:
-            print(f'[ComfyUI-Manager] failed to fixing')
+            print('[ComfyUI-Manager] failed to fixing')
 
         if 'detected dubious' in output:
             print(f'\n[ComfyUI-Manager] Failed to fixing repository setup. Please execute this command on cmd: \n'
@@ -1575,13 +1669,13 @@ def __win_check_git_update(path, do_fetch=False, do_update=False):
     if do_update:
         if "CUSTOM NODE PULL: Success" in output:
             process.wait()
-            print(f"\rUpdated: {path}")
+            print(f"\x1b[2K\rUpdated: {path}")
             return True, True    # updated
         elif "CUSTOM NODE PULL: None" in output:
             process.wait()
             return False, True   # there is no update
         else:
-            print(f"\rUpdate error: {path}")
+            print(f"\x1b[2K\rUpdate error: {path}")
             process.wait()
             return False, False  # update failed
     else:
@@ -1592,7 +1686,7 @@ def __win_check_git_update(path, do_fetch=False, do_update=False):
             process.wait()
             return False, True
         else:
-            print(f"\rFetch error: {path}")
+            print(f"\x1b[2K\rFetch error: {path}")
             print(f"\n{output}\n")
             process.wait()
             return False, True
@@ -1602,7 +1696,7 @@ def __win_check_git_pull(path):
     new_env = os.environ.copy()
     new_env["COMFYUI_PATH"] = comfy_path
     command = [sys.executable, git_script_path, "--pull", path]
-    process = subprocess.Popen(command, env=new_env, cwd=custom_nodes_path)
+    process = subprocess.Popen(command, env=new_env, cwd=get_default_custom_nodes_path())
     process.wait()
 
 
@@ -1617,6 +1711,7 @@ def execute_install_script(url, repo_path, lazy_mode=False, instant_execution=Fa
     else:
         if os.path.exists(requirements_path) and not no_deps:
             print("Install: pip packages")
+            pip_fixer = manager_util.PIPFixer(manager_util.get_installed_packages())
             with open(requirements_path, "r") as requirements_file:
                 for line in requirements_file:
                     #handle comments
@@ -1638,9 +1733,10 @@ def execute_install_script(url, repo_path, lazy_mode=False, instant_execution=Fa
 
                         if package_name.strip() != "" and not package_name.startswith('#'):
                             try_install_script(url, repo_path, install_cmd, instant_execution=instant_execution)
+            pip_fixer.fix_broken()
 
         if os.path.exists(install_script_path):
-            print(f"Install: install script")
+            print("Install: install script")
             install_cmd = [sys.executable, "install.py"]
             try_install_script(url, repo_path, install_cmd, instant_execution=instant_execution)
 
@@ -1656,6 +1752,7 @@ def git_repo_update_check_with(path, do_fetch=False, do_update=False, no_deps=Fa
     :param path: path to git custom node
     :param do_fetch: do fetch during check
     :param do_update: do update during check
+    :param no_deps: don't install dependencies
     :return: update state * success
     """
     if do_fetch:
@@ -1720,7 +1817,7 @@ def git_repo_update_check_with(path, do_fetch=False, do_update=False, no_deps=Fa
 
                 if commit_hash != new_commit_hash:
                     execute_install_script(None, path, no_deps=no_deps)
-                    print(f"\nUpdated: {path}")
+                    print(f"\x1b[2K\rUpdated: {path}")
                     return True, True
                 else:
                     return False, False
@@ -1778,7 +1875,7 @@ def is_valid_url(url):
             return True
     finally:
         # Check for SSH git URL format
-        pattern = re.compile(r"^(.+@|ssh:\/\/).+:.+$")
+        pattern = re.compile(r"^(.+@|ssh://).+:.+$")
         if pattern.match(url):
             return True
     return False
@@ -1809,24 +1906,26 @@ async def gitclone_install(url, instant_execution=False, msg_prefix='', no_deps=
             # node_dir = f"{repo_name}@unknown"
             node_dir = repo_name
 
-            repo_path = os.path.join(custom_nodes_path, node_dir)
-            disabled_repo_path1 = os.path.join(custom_nodes_path, '.disabled', node_dir)
-            disabled_repo_path2 = os.path.join(custom_nodes_path, repo_name+'.disabled')  # old style
+            repo_path = os.path.join(get_default_custom_nodes_path(), node_dir)
 
             if os.path.exists(repo_path):
                 return result.fail(f"Already exists: '{repo_path}'")
 
-            if os.path.exists(disabled_repo_path1):
-                return result.fail(f"Already exists (disabled): '{disabled_repo_path1}'")
+            for custom_nodes_dir in get_custom_nodes_paths():
+                disabled_repo_path1 = os.path.join(custom_nodes_dir, '.disabled', node_dir)
+                disabled_repo_path2 = os.path.join(custom_nodes_dir, repo_name+'.disabled')  # old style
 
-            if os.path.exists(disabled_repo_path2):
-                return result.fail(f"Already exists (disabled): '{disabled_repo_path2}'")
+                if os.path.exists(disabled_repo_path1):
+                    return result.fail(f"Already exists (disabled): '{disabled_repo_path1}'")
+
+                if os.path.exists(disabled_repo_path2):
+                    return result.fail(f"Already exists (disabled): '{disabled_repo_path2}'")
 
             print(f"CLONE into '{repo_path}'")
 
             # Clone the repository from the remote URL
             if not instant_execution and platform.system() == 'Windows':
-                res = manager_funcs.run_script([sys.executable, git_script_path, "--clone", custom_nodes_path, url, repo_path], cwd=custom_nodes_path)
+                res = manager_funcs.run_script([sys.executable, git_script_path, "--clone", get_default_custom_nodes_path(), url, repo_path], cwd=get_default_custom_nodes_path())
                 if res != 0:
                     return result.fail(f"Failed to clone '{url}' into  '{repo_path}'")
             else:
@@ -1880,34 +1979,34 @@ async def get_data_by_mode(mode, filename, channel_url=None):
 
     try:
         if mode == "local":
-            uri = os.path.join(comfyui_manager_path, filename)
-            json_obj = await get_data(uri)
+            uri = os.path.join(manager_util.comfyui_manager_path, filename)
+            json_obj = await manager_util.get_data(uri)
         else:
             if channel_url is None:
                 uri = get_config()['channel_url'] + '/' + filename
             else:
                 uri = channel_url + '/' + filename
 
-            cache_uri = str(simple_hash(uri))+'_'+filename
-            cache_uri = os.path.join(cache_dir, cache_uri)
+            cache_uri = str(manager_util.simple_hash(uri))+'_'+filename
+            cache_uri = os.path.join(manager_util.cache_dir, cache_uri)
 
             if mode == "cache":
-                if is_file_created_within_one_day(cache_uri):
-                    json_obj = await get_data(cache_uri)
+                if manager_util.is_file_created_within_one_day(cache_uri):
+                    json_obj = await manager_util.get_data(cache_uri)
                 else:
-                    json_obj = await get_data(uri)
-                    with cache_lock:
+                    json_obj = await manager_util.get_data(uri)
+                    with manager_util.cache_lock:
                         with open(cache_uri, "w", encoding='utf-8') as file:
                             json.dump(json_obj, file, indent=4, sort_keys=True)
             else:
-                json_obj = await get_data(uri)
-                with cache_lock:
+                json_obj = await manager_util.get_data(uri)
+                with manager_util.cache_lock:
                     with open(cache_uri, "w", encoding='utf-8') as file:
                         json.dump(json_obj, file, indent=4, sort_keys=True)
     except Exception as e:
         print(f"[ComfyUI-Manager] Due to a network error, switching to local mode.\n=> {filename}\n=> {e}")
-        uri = os.path.join(comfyui_manager_path, filename)
-        json_obj = await get_data(uri)
+        uri = os.path.join(manager_util.comfyui_manager_path, filename)
+        json_obj = await manager_util.get_data(uri)
 
     return json_obj
 
@@ -1923,7 +2022,7 @@ def gitclone_fix(files, instant_execution=False, no_deps=False):
             url = url[:-1]
         try:
             repo_name = os.path.splitext(os.path.basename(url))[0]
-            repo_path = os.path.join(custom_nodes_path, repo_name)
+            repo_path = os.path.join(get_default_custom_nodes_path(), repo_name)
 
             if os.path.exists(repo_path+'.disabled'):
                 repo_path = repo_path+'.disabled'
@@ -1975,32 +2074,33 @@ def gitclone_uninstall(files):
         if url.endswith("/"):
             url = url[:-1]
         try:
-            dir_name = os.path.splitext(os.path.basename(url))[0].replace(".git", "")
-            dir_path = os.path.join(custom_nodes_path, dir_name)
+            for custom_nodes_dir in get_custom_nodes_paths():
+                dir_name = os.path.splitext(os.path.basename(url))[0].replace(".git", "")
+                dir_path = os.path.join(custom_nodes_dir, dir_name)
 
-            # safety check
-            if dir_path == '/' or dir_path[1:] == ":/" or dir_path == '':
-                print(f"Uninstall(git-clone) error: invalid path '{dir_path}' for '{url}'")
-                return False
+                # safety check
+                if dir_path == '/' or dir_path[1:] == ":/" or dir_path == '':
+                    print(f"Uninstall(git-clone) error: invalid path '{dir_path}' for '{url}'")
+                    return False
 
-            install_script_path = os.path.join(dir_path, "uninstall.py")
-            disable_script_path = os.path.join(dir_path, "disable.py")
-            if os.path.exists(install_script_path):
-                uninstall_cmd = [sys.executable, "uninstall.py"]
-                code = manager_funcs.run_script(uninstall_cmd, cwd=dir_path)
+                install_script_path = os.path.join(dir_path, "uninstall.py")
+                disable_script_path = os.path.join(dir_path, "disable.py")
+                if os.path.exists(install_script_path):
+                    uninstall_cmd = [sys.executable, "uninstall.py"]
+                    code = manager_funcs.run_script(uninstall_cmd, cwd=dir_path)
 
-                if code != 0:
-                    print(f"An error occurred during the execution of the uninstall.py script. Only the '{dir_path}' will be deleted.")
-            elif os.path.exists(disable_script_path):
-                disable_script = [sys.executable, "disable.py"]
-                code = manager_funcs.run_script(disable_script, cwd=dir_path)
-                if code != 0:
-                    print(f"An error occurred during the execution of the disable.py script. Only the '{dir_path}' will be deleted.")
+                    if code != 0:
+                        print(f"An error occurred during the execution of the uninstall.py script. Only the '{dir_path}' will be deleted.")
+                elif os.path.exists(disable_script_path):
+                    disable_script = [sys.executable, "disable.py"]
+                    code = manager_funcs.run_script(disable_script, cwd=dir_path)
+                    if code != 0:
+                        print(f"An error occurred during the execution of the disable.py script. Only the '{dir_path}' will be deleted.")
 
-            if os.path.exists(dir_path):
-                rmtree(dir_path)
-            elif os.path.exists(dir_path + ".disabled"):
-                rmtree(dir_path + ".disabled")
+                if os.path.exists(dir_path):
+                    rmtree(dir_path)
+                elif os.path.exists(dir_path + ".disabled"):
+                    rmtree(dir_path + ".disabled")
         except Exception as e:
             print(f"Uninstall(git-clone) error: {url} / {e}", file=sys.stderr)
             return False
@@ -2022,31 +2122,48 @@ def gitclone_set_active(files, is_disable):
         if url.endswith("/"):
             url = url[:-1]
         try:
-            dir_name = os.path.splitext(os.path.basename(url))[0].replace(".git", "")
-            dir_path = os.path.join(custom_nodes_path, dir_name)
+            for custom_nodes_dir in get_custom_nodes_paths():
+                dir_name = os.path.splitext(os.path.basename(url))[0].replace(".git", "")
+                dir_path = os.path.join(custom_nodes_dir, dir_name)
 
-            # safety check
-            if dir_path == '/' or dir_path[1:] == ":/" or dir_path == '':
-                print(f"{action_name}(git-clone) error: invalid path '{dir_path}' for '{url}'")
-                return False
+                # safety check
+                if dir_path == '/' or dir_path[1:] == ":/" or dir_path == '':
+                    print(f"{action_name}(git-clone) error: invalid path '{dir_path}' for '{url}'")
+                    return False
 
-            if is_disable:
-                current_path = dir_path
-                new_path = dir_path + ".disabled"
-            else:
-                current_path = dir_path + ".disabled"
-                new_path = dir_path
+                if is_disable:
+                    current_path = dir_path
+                    base_path = extract_base_custom_nodes_dir(current_path)
+                    new_path = os.path.join(base_path, ".disabled", dir_name)
 
-            shutil.move(current_path, new_path)
+                    if not os.path.exists(current_path):
+                        continue
+                else:
+                    current_path1 = os.path.join(get_default_custom_nodes_path(), ".disabled", dir_name)
+                    current_path2 = dir_path + ".disabled"
 
-            if is_disable:
-                if os.path.exists(os.path.join(new_path, "disable.py")):
-                    disable_script = [sys.executable, "disable.py"]
-                    try_install_script(url, new_path, disable_script)
-            else:
-                if os.path.exists(os.path.join(new_path, "enable.py")):
-                    enable_script = [sys.executable, "enable.py"]
-                    try_install_script(url, new_path, enable_script)
+                    if os.path.exists(current_path1):
+                        current_path = current_path1
+                    elif os.path.exists(current_path2):
+                        current_path = current_path2
+                    else:
+                        continue
+
+                    base_path = extract_base_custom_nodes_dir(current_path)
+                    new_path = os.path.join(base_path, dir_name)
+
+                shutil.move(current_path, new_path)
+
+                if is_disable:
+                    if os.path.exists(os.path.join(new_path, "disable.py")):
+                        disable_script = [sys.executable, "disable.py"]
+                        try_install_script(url, new_path, disable_script)
+                else:
+                    if os.path.exists(os.path.join(new_path, "enable.py")):
+                        enable_script = [sys.executable, "enable.py"]
+                        try_install_script(url, new_path, enable_script)
+
+                break  # for safety
 
         except Exception as e:
             print(f"{action_name}(git-clone) error: {url} / {e}", file=sys.stderr)
@@ -2064,21 +2181,30 @@ def gitclone_update(files, instant_execution=False, skip_script=False, msg_prefi
         if url.endswith("/"):
             url = url[:-1]
         try:
-            repo_name = os.path.splitext(os.path.basename(url))[0].replace(".git", "")
-            repo_path = os.path.join(custom_nodes_path, repo_name)
+            for custom_nodes_dir in get_default_custom_nodes_path():
+                repo_name = os.path.splitext(os.path.basename(url))[0].replace(".git", "")
+                repo_path = os.path.join(custom_nodes_dir, repo_name)
 
-            if os.path.exists(repo_path+'.disabled'):
-                repo_path = repo_path+'.disabled'
+                if os.path.exists(repo_path+'.disabled'):
+                    repo_path = repo_path+'.disabled'
 
-            git_pull(repo_path)
+                elif os.path.exists(os.path.join(get_default_custom_nodes_path(), "disabled", repo_name)):
+                    repo_path = os.path.join(get_default_custom_nodes_path(), "disabled", repo_name)
 
-            if not skip_script:
-                if instant_execution:
-                    if not execute_install_script(url, repo_path, lazy_mode=False, instant_execution=True, no_deps=no_deps):
-                        return False
-                else:
-                    if not execute_install_script(url, repo_path, lazy_mode=True, no_deps=no_deps):
-                        return False
+                if not os.path.exists(repo_path):
+                    continue
+
+                git_pull(repo_path)
+
+                if not skip_script:
+                    if instant_execution:
+                        if not execute_install_script(url, repo_path, lazy_mode=False, instant_execution=True, no_deps=no_deps):
+                            return False
+                    else:
+                        if not execute_install_script(url, repo_path, lazy_mode=True, no_deps=no_deps):
+                            return False
+
+                break  # for safety
 
         except Exception as e:
             print(f"Update(git-clone) error: {url} / {e}", file=sys.stderr)
@@ -2113,7 +2239,7 @@ def update_path(repo_path, instant_execution=False, no_deps=False):
         remote.fetch()
     except Exception as e:
         if 'detected dubious' in str(e):
-            print(f"[ComfyUI-Manager] Try fixing 'dubious repository' error on 'ComfyUI' repository")
+            print("[ComfyUI-Manager] Try fixing 'dubious repository' error on 'ComfyUI' repository")
             safedir_path = comfy_path.replace('\\', '/')
             subprocess.run(['git', 'config', '--global', '--add', 'safe.directory', safedir_path])
             try:
@@ -2138,20 +2264,41 @@ def update_path(repo_path, instant_execution=False, no_deps=False):
 def lookup_customnode_by_url(data, target):
     for x in data['custom_nodes']:
         if target in x['files']:
-            dir_name = os.path.splitext(os.path.basename(target))[0].replace(".git", "")
-            dir_path = os.path.join(custom_nodes_path, dir_name)
-            if os.path.exists(dir_path):
-                x['installed'] = 'True'
-            elif os.path.exists(dir_path + ".disabled"):
-                x['installed'] = 'Disabled'
-            return x
+            for custom_nodes_dir in get_custom_nodes_paths():
+                dir_name = os.path.splitext(os.path.basename(target))[0].replace(".git", "")
+                dir_path = os.path.join(custom_nodes_dir, dir_name)
+                if os.path.exists(dir_path):
+                    x['installed'] = 'True'
+                else:
+                    disabled_path1 = os.path.join(custom_nodes_dir, '.disabled', dir_name)
+                    disabled_path2 = dir_path + ".disabled"
+
+                    if os.path.exists(disabled_path1) or os.path.exists(disabled_path2):
+                        x['installed'] = 'Disabled'
+                    else:
+                        continue
+
+                return x
+
+    return None
+
+
+def lookup_installed_custom_nodes_legacy(repo_name):
+    base_paths = get_custom_nodes_paths()
+
+    for base_path in base_paths:
+        repo_path = os.path.join(base_path, repo_name)
+        if os.path.exists(repo_path):
+            return True, repo_path
+        elif os.path.exists(repo_path + '.disabled'):
+            return False, repo_path
 
     return None
 
 
 def simple_check_custom_node(url):
     dir_name = os.path.splitext(os.path.basename(url))[0].replace(".git", "")
-    dir_path = os.path.join(custom_nodes_path, dir_name)
+    dir_path = os.path.join(get_default_custom_nodes_path(), dir_name)
     if os.path.exists(dir_path):
         return 'installed'
     elif os.path.exists(dir_path+'.disabled'):
@@ -2201,7 +2348,7 @@ def get_current_snapshot():
     repo_path = comfy_path
 
     if not os.path.exists(os.path.join(repo_path, '.git')):
-        print(f"ComfyUI update fail: The installed ComfyUI does not have a Git repository.")
+        print("ComfyUI update fail: The installed ComfyUI does not have a Git repository.")
         return {}
 
     repo = git.Repo(repo_path)
@@ -2212,53 +2359,54 @@ def get_current_snapshot():
     file_custom_nodes = []
 
     # Get custom nodes hash
-    for path in os.listdir(custom_nodes_path):
-        if path in ['.disabled', '__pycache__']:
-            continue
+    for custom_nodes_dir in get_custom_nodes_paths():
+        for path in os.listdir(custom_nodes_dir):
+            if path in ['.disabled', '__pycache__']:
+                continue
 
-        fullpath = os.path.join(custom_nodes_path, path)
+            fullpath = os.path.join(custom_nodes_dir, path)
 
-        if os.path.isdir(fullpath):
-            is_disabled = path.endswith(".disabled")
+            if os.path.isdir(fullpath):
+                is_disabled = path.endswith(".disabled")
 
-            try:
-                git_dir = os.path.join(fullpath, '.git')
+                try:
+                    git_dir = os.path.join(fullpath, '.git')
 
-                parsed_spec = path.split('@')
+                    parsed_spec = path.split('@')
 
-                if len(parsed_spec) == 1:
-                    node_id = parsed_spec[0]
-                    ver_spec = 'unknown'
-                else:
-                    node_id, ver_spec = parsed_spec
-                    ver_spec = ver_spec.replace('_', '.')
+                    if len(parsed_spec) == 1:
+                        node_id = parsed_spec[0]
+                        ver_spec = 'unknown'
+                    else:
+                        node_id, ver_spec = parsed_spec
+                        ver_spec = ver_spec.replace('_', '.')
 
-                if len(ver_spec) > 1 and ver_spec not in ['nightly', 'latest', 'unknown']:
-                    if is_disabled:
-                        continue  # don't restore disabled state of CNR node.
+                    if len(ver_spec) > 1 and ver_spec not in ['nightly', 'latest', 'unknown']:
+                        if is_disabled:
+                            continue  # don't restore disabled state of CNR node.
 
-                    cnr_custom_nodes[node_id] = ver_spec
+                        cnr_custom_nodes[node_id] = ver_spec
 
-                elif not os.path.exists(git_dir):
-                    continue
+                    elif not os.path.exists(git_dir):
+                        continue
 
-                else:
-                    repo = git.Repo(fullpath)
-                    commit_hash = repo.head.commit.hexsha
-                    url = repo.remotes.origin.url
-                    git_custom_nodes[url] = dict(hash=commit_hash, disabled=is_disabled)
-            except:
-                print(f"Failed to extract snapshots for the custom node '{path}'.")
+                    else:
+                        repo = git.Repo(fullpath)
+                        commit_hash = repo.head.commit.hexsha
+                        url = repo.remotes.origin.url
+                        git_custom_nodes[url] = dict(hash=commit_hash, disabled=is_disabled)
+                except:
+                    print(f"Failed to extract snapshots for the custom node '{path}'.")
 
-        elif path.endswith('.py'):
-            is_disabled = path.endswith(".py.disabled")
-            filename = os.path.basename(path)
-            item = {
-                'filename': filename,
-                'disabled': is_disabled
-            }
+            elif path.endswith('.py'):
+                is_disabled = path.endswith(".py.disabled")
+                filename = os.path.basename(path)
+                item = {
+                    'filename': filename,
+                    'disabled': is_disabled
+                }
 
-            file_custom_nodes.append(item)
+                file_custom_nodes.append(item)
 
     pip_packages = get_installed_pip_packages()
 
@@ -2278,7 +2426,7 @@ def save_snapshot_with_postfix(postfix, path=None):
         date_time_format = now.strftime("%Y-%m-%d_%H-%M-%S")
         file_name = f"{date_time_format}_{postfix}"
 
-        path = os.path.join(comfyui_manager_path, 'snapshots', f"{file_name}.json")
+        path = os.path.join(manager_snapshot_path, f"{file_name}.json")
     else:
         file_name = path.replace('\\', '/').split('/')[-1]
         file_name = file_name.split('.')[-2]
@@ -2615,7 +2763,7 @@ async def restore_snapshot(snapshot_path, git_helper_extras=None):
     for k, v in unified_manager.repo_cnr_map.items():
         cnr_repo_map[v['id']] = k
 
-    print(f"Restore snapshot.")
+    print("Restore snapshot.")
 
     postinstalls = []
 
@@ -2666,7 +2814,7 @@ async def restore_snapshot(snapshot_path, git_helper_extras=None):
                     if hasattr(ps, 'postinstall'):
                         postinstalls.append(ps.postinstall)
                     else:
-                        print(f"cm-cli: unexpected [0001]")
+                        print("cm-cli: unexpected [0001]")
 
         # for nightly restore
         git_info = info.get('git_custom_nodes')
@@ -2835,7 +2983,7 @@ async def restore_snapshot(snapshot_path, git_helper_extras=None):
         if repo_name.endswith('.git'):
             repo_name = repo_name[:-4]
 
-        to_path = os.path.join(custom_nodes_path, repo_name)
+        to_path = os.path.join(get_default_custom_nodes_path(), repo_name)
         unified_manager.repo_install(repo_url, to_path, instant_execution=True, no_deps=False, return_postinstall=False)
         cloned_repos.append(repo_name)
 
@@ -2880,8 +3028,8 @@ async def check_need_to_migrate():
 
     if len(legacy_custom_nodes) > 0:
         print("\n--------------------- ComfyUI-Manager migration notice --------------------")
-        print("The following custom nodes were installed using the old management method and require migration:")
-        print(", ".join(legacy_custom_nodes))
+        print("The following custom nodes were installed using the old management method and require migration:\n")
+        print("\n".join(legacy_custom_nodes))
         print("---------------------------------------------------------------------------\n")
         need_to_migrate = True
 

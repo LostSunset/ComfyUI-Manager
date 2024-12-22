@@ -14,8 +14,11 @@ glob_path = os.path.join(os.path.dirname(__file__), "glob")
 sys.path.append(glob_path)
 
 import security_check
-from manager_util import *
+import manager_util
 import cm_global
+import manager_downloader
+from datetime import datetime
+import folder_paths
 
 security_check.security_check()
 
@@ -71,19 +74,22 @@ cm_global.register_api('cm.is_import_failed_extension', is_import_failed_extensi
 
 
 comfyui_manager_path = os.path.abspath(os.path.dirname(__file__))
-custom_nodes_path = os.path.abspath(os.path.join(comfyui_manager_path, ".."))
-startup_script_path = os.path.join(comfyui_manager_path, "startup-scripts")
-restore_snapshot_path = os.path.join(startup_script_path, "restore-snapshot.json")
+
+custom_nodes_base_path = folder_paths.get_folder_paths('custom_nodes')[0]
+manager_files_path = os.path.abspath(os.path.join(folder_paths.get_user_directory(), 'default', 'ComfyUI-Manager'))
+manager_pip_overrides_path = os.path.join(manager_files_path, "pip_overrides.json")
+restore_snapshot_path = os.path.join(manager_files_path, "startup-scripts", "restore-snapshot.json")
+
 git_script_path = os.path.join(comfyui_manager_path, "git_helper.py")
 cm_cli_path = os.path.join(comfyui_manager_path, "cm-cli.py")
-pip_overrides_path = os.path.join(comfyui_manager_path, "pip_overrides.json")
 
 
 cm_global.pip_overrides = {}
-if os.path.exists(pip_overrides_path):
-    with open(pip_overrides_path, 'r', encoding="UTF-8", errors="ignore") as json_file:
+if os.path.exists(manager_pip_overrides_path):
+    with open(manager_pip_overrides_path, 'r', encoding="UTF-8", errors="ignore") as json_file:
         cm_global.pip_overrides = json.load(json_file)
         cm_global.pip_overrides['numpy'] = 'numpy<2'
+        cm_global.pip_overrides['ultralytics'] = 'ultralytics==8.3.40'  # for security
 
 
 def remap_pip_package(pkg):
@@ -96,36 +102,6 @@ def remap_pip_package(pkg):
 
 
 std_log_lock = threading.Lock()
-
-
-class TerminalHook:
-    def __init__(self):
-        self.hooks = {}
-
-    def add_hook(self, k, v):
-        self.hooks[k] = v
-
-    def remove_hook(self, k):
-        if k in self.hooks:
-            del self.hooks[k]
-
-    def write_stderr(self, msg):
-        for v in self.hooks.values():
-            try:
-                v.write_stderr(msg)
-            except Exception:
-                pass
-
-    def write_stdout(self, msg):
-        for v in self.hooks.values():
-            try:
-                v.write_stdout(msg)
-            except Exception:
-                pass
-
-
-terminal_hook = TerminalHook()
-sys.__comfyui_manager_terminal_hook = terminal_hook
 
 
 def handle_stream(stream, prefix):
@@ -173,15 +149,18 @@ try:
         postfix = ""
 
     # Logger setup
+    log_path_base = None
     if enable_file_logging:
-        if os.path.exists(f"comfyui{postfix}.log"):
-            if os.path.exists(f"comfyui{postfix}.prev.log"):
-                if os.path.exists(f"comfyui{postfix}.prev2.log"):
-                    os.remove(f"comfyui{postfix}.prev2.log")
-                os.rename(f"comfyui{postfix}.prev.log", f"comfyui{postfix}.prev2.log")
-            os.rename(f"comfyui{postfix}.log", f"comfyui{postfix}.prev.log")
+        log_path_base = os.path.join(folder_paths.user_directory, 'comfyui')
 
-        log_file = open(f"comfyui{postfix}.log", "w", encoding="utf-8", errors="ignore")
+        if os.path.exists(f"{log_path_base}{postfix}.log"):
+            if os.path.exists(f"{log_path_base}{postfix}.prev.log"):
+                if os.path.exists(f"{log_path_base}{postfix}.prev2.log"):
+                    os.remove(f"{log_path_base}{postfix}.prev2.log")
+                os.rename(f"{log_path_base}{postfix}.prev.log", f"{log_path_base}{postfix}.prev2.log")
+            os.rename(f"{log_path_base}{postfix}.log", f"{log_path_base}{postfix}.prev.log")
+
+        log_file = open(f"{log_path_base}{postfix}.log", "w", encoding="utf-8", errors="ignore")
 
     log_lock = threading.Lock()
 
@@ -257,7 +236,7 @@ try:
 
         def sync_write(self, message, file_only=False):
             with log_lock:
-                timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')[:-3]
+                timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
                 if self.last_char != '\n':
                     log_file.write(message)
                 else:
@@ -270,11 +249,9 @@ try:
                     if self.is_stdout:
                         write_stdout(message)
                         original_stdout.flush()
-                        terminal_hook.write_stderr(message)
                     else:
                         write_stderr(message)
                         original_stderr.flush()
-                        terminal_hook.write_stdout(message)
 
         def flush(self):
             log_file.flush()
@@ -340,27 +317,26 @@ except Exception as e:
 
 
 try:
-    import git
+    import git  # noqa: F401
 except ModuleNotFoundError:
     my_path = os.path.dirname(__file__)
     requirements_path = os.path.join(my_path, "requirements.txt")
 
-    print(f"## ComfyUI-Manager: installing dependencies. (GitPython)")
+    print("## ComfyUI-Manager: installing dependencies. (GitPython)")
     try:
         result = subprocess.check_output([sys.executable, '-s', '-m', 'pip', 'install', '-r', requirements_path])
-    except subprocess.CalledProcessError as e:
-        print(f"## [ERROR] ComfyUI-Manager: Attempting to reinstall dependencies using an alternative method.")
+    except subprocess.CalledProcessError:
+        print("## [ERROR] ComfyUI-Manager: Attempting to reinstall dependencies using an alternative method.")
         try:
             result = subprocess.check_output([sys.executable, '-s', '-m', 'pip', 'install', '--user', '-r', requirements_path])
-        except subprocess.CalledProcessError as e:
-            print(f"## [ERROR] ComfyUI-Manager: Failed to install the GitPython package in the correct Python environment. Please install it manually in the appropriate environment. (You can seek help at https://app.element.io/#/room/%23comfyui_space%3Amatrix.org)")
+        except subprocess.CalledProcessError:
+            print("## [ERROR] ComfyUI-Manager: Failed to install the GitPython package in the correct Python environment. Please install it manually in the appropriate environment. (You can seek help at https://app.element.io/#/room/%23comfyui_space%3Amatrix.org)")
 
 try:
-    import git
-    print(f"## ComfyUI-Manager: installing dependencies done.")
+    print("## ComfyUI-Manager: installing dependencies done.")
 except:
     # maybe we should sys.exit() here? there is at least two screens worth of error messages still being pumped after our error messages
-    print(f"## [ERROR] ComfyUI-Manager: GitPython package seems to be installed, but failed to load somehow. Make sure you have a working git client installed")
+    print("## [ERROR] ComfyUI-Manager: GitPython package seems to be installed, but failed to load somehow. Make sure you have a working git client installed")
 
 
 print("** ComfyUI startup time:", datetime.now())
@@ -369,8 +345,8 @@ print("** Python version:", sys.version)
 print("** Python executable:", sys.executable)
 print("** ComfyUI Path:", comfy_path)
 
-if enable_file_logging:
-    print("** Log path:", os.path.abspath('comfyui.log'))
+if log_path_base is not None:
+    print("** Log path:", os.path.abspath(f'{log_path_base}.log'))
 else:
     print("** Log path: file logging is disabled")
 
@@ -405,7 +381,7 @@ def check_bypass_ssl():
         default_conf = config['default']
 
         if 'bypass_ssl' in default_conf and default_conf['bypass_ssl'].lower() == 'true':
-            print(f"[ComfyUI-Manager] WARN: Unsafe - SSL verification bypass option is Enabled. (see ComfyUI-Manager/config.ini)")
+            print("[ComfyUI-Manager] WARN: Unsafe - SSL verification bypass option is Enabled. (see ComfyUI-Manager/config.ini)")
             ssl._create_default_https_context = ssl._create_unverified_context  # SSL certificate error fix.
     except Exception:
         pass
@@ -416,31 +392,8 @@ check_bypass_ssl()
 
 # Perform install
 processed_install = set()
-script_list_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "startup-scripts", "install-scripts.txt")
-pip_map = None
-
-
-def get_installed_packages():
-    global pip_map
-
-    if pip_map is None:
-        try:
-            result = subprocess.check_output([sys.executable, '-m', 'pip', 'list'], universal_newlines=True)
-
-            pip_map = {}
-            for line in result.split('\n'):
-                x = line.strip()
-                if x:
-                    y = line.split()
-                    if y[0] == 'Package' or y[0].startswith('-'):
-                        continue
-
-                    pip_map[y[0]] = y[1]
-        except subprocess.CalledProcessError as e:
-            print(f"[ComfyUI-Manager] Failed to retrieve the information of installed pip packages.")
-            return set()
-
-    return pip_map
+script_list_path = os.path.join(folder_paths.user_directory, "default", "ComfyUI-Manager", "startup-scripts", "install-scripts.txt")
+pip_fixer = manager_util.PIPFixer(manager_util.get_installed_packages())
 
 
 def is_installed(name):
@@ -459,18 +412,18 @@ def is_installed(name):
         return True
 
     if name in cm_global.pip_downgrade_blacklist:
-        pips = get_installed_packages()
+        pips = manager_util.get_installed_packages()
 
         if match is None:
             if name in pips:
                 return True
         elif match.group(2) in ['<=', '==', '<']:
             if name in pips:
-                if StrictVersion(pips[name]) >= StrictVersion(match.group(3)):
+                if manager_util.StrictVersion(pips[name]) >= manager_util.StrictVersion(match.group(3)):
                     print(f"[ComfyUI-Manager] skip black listed pip installation: '{name}'")
                     return True
 
-    pkg = get_installed_packages().get(name.lower())
+    pkg = manager_util.get_installed_packages().get(name.lower())
     if pkg is None:
         return False  # update if not installed
 
@@ -478,9 +431,9 @@ def is_installed(name):
         return True   # don't update if version is not specified
 
     if match.group(2) in ['>', '>=']:
-        if StrictVersion(pkg) < StrictVersion(match.group(3)):
+        if manager_util.StrictVersion(pkg) < manager_util.StrictVersion(match.group(3)):
             return False
-        elif StrictVersion(pkg) > StrictVersion(match.group(3)):
+        elif manager_util.StrictVersion(pkg) > manager_util.StrictVersion(match.group(3)):
             print(f"[SKIP] Downgrading pip package isn't allowed: {name.lower()} (cur={pkg})")
 
     return True       # prevent downgrade
@@ -511,21 +464,21 @@ if os.path.exists(restore_snapshot_path):
                     else:
                         print(prefix, msg, end="")
 
-        print(f"[ComfyUI-Manager] Restore snapshot.")
+        print("[ComfyUI-Manager] Restore snapshot.")
         new_env = os.environ.copy()
         new_env["COMFYUI_PATH"] = comfy_path
 
         cmd_str = [sys.executable, cm_cli_path, 'restore-snapshot', restore_snapshot_path]
-        exit_code = process_wrap(cmd_str, custom_nodes_path, handler=msg_capture, env=new_env)
+        exit_code = process_wrap(cmd_str, custom_nodes_base_path, handler=msg_capture, env=new_env)
 
         if exit_code != 0:
-            print(f"[ComfyUI-Manager] Restore snapshot failed.")
+            print("[ComfyUI-Manager] Restore snapshot failed.")
         else:
-            print(f"[ComfyUI-Manager] Restore snapshot done.")
+            print("[ComfyUI-Manager] Restore snapshot done.")
 
     except Exception as e:
         print(e)
-        print(f"[ComfyUI-Manager] Restore snapshot failed.")
+        print("[ComfyUI-Manager] Restore snapshot failed.")
 
     os.remove(restore_snapshot_path)
 
@@ -567,10 +520,10 @@ def execute_lazy_cnr_switch(target, zip_url, from_path, to_path, no_deps, custom
     # 1. download
     archive_name = f"CNR_temp_{str(uuid.uuid4())}.zip"  # should be unpredictable name - security precaution
     download_path = os.path.join(custom_nodes_path, archive_name)
-    download_url(zip_url, custom_nodes_path, archive_name)
+    manager_downloader.download_url(zip_url, custom_nodes_path, archive_name)
 
     # 2. extract files into <node_id>@<cur_ver>
-    extracted = extract_package_as_zip(download_path, from_path)
+    extracted = manager_util.extract_package_as_zip(download_path, from_path)
     os.remove(download_path)
 
     if extracted is None:
@@ -676,8 +629,11 @@ if os.path.exists(script_list_path):
     print("\n[ComfyUI-Manager] Startup script completed.")
     print("#######################################################################\n")
 
+pip_fixer.fix_broken()
+
 del processed_install
-del pip_map
+del pip_fixer
+manager_util.clear_pip_cache()
 
 
 def check_windows_event_loop_policy():
@@ -693,7 +649,7 @@ def check_windows_event_loop_policy():
                 import asyncio
                 import asyncio.windows_events
                 asyncio.set_event_loop_policy(asyncio.windows_events.WindowsSelectorEventLoopPolicy())
-                print(f"[ComfyUI-Manager] Windows event loop policy mode enabled")
+                print("[ComfyUI-Manager] Windows event loop policy mode enabled")
             except Exception as e:
                 print(f"[ComfyUI-Manager] WARN: Windows initialization fail: {e}")
     except Exception:

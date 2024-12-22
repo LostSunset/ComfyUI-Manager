@@ -9,8 +9,332 @@
             "description": "If you see this message, your ComfyUI-Manager is outdated.\nLegacy channel provides only the list of the deprecated nodes. If you want to find the complete node list, please go to the Default channel."
         },
         
-        
 
+        
+        {
+            "author": "neuratech-ai",
+            "title": "ComfyUI-MultiGPU [NOT MAINTAINED]",
+            "reference": "https://github.com/neuratech-ai/ComfyUI-MultiGPU",
+            "files": [
+                "https://github.com/neuratech-ai/ComfyUI-MultiGPU"
+            ],
+            "install_type": "git-clone",
+            "description": "Experimental nodes for using multiple GPUs in a single ComfyUI workflow.\nThis extension adds new nodes for model loading that allow you to specify the GPU to use for each model. It monkey patches the memory management of ComfyUI in a hacky way and is neither a comprehensive solution nor a well-tested one. Use at your own risk.\nNote that this does not add parallelism. The workflow steps are still executed sequentially just on different GPUs. Any potential speedup comes from not having to constantly load and unload models from VRAM."
+        },
+        {
+            "author": "jefferyharrell",
+            "title": "ComfyUI-JHXMP [REMOVED]",
+            "reference": "https://github.com/jefferyharrell/ComfyUI-JHXMP",
+            "files": [
+                "https://github.com/jefferyharrell/ComfyUI-JHXMP"
+            ],
+            "install_type": "git-clone",
+            "description": "NODES: Save Image With XMP Metadata"
+        },
+        {
+            "author": "viperyl",
+            "title": "ComfyUI-BiRefNet [NOT MAINTAINED]",
+            "id": "comfyui-birefnet",
+            "reference": "https://github.com/viperyl/ComfyUI-BiRefNet",
+            "files": [
+                "https://github.com/viperyl/ComfyUI-BiRefNet"
+            ],
+            "install_type": "git-clone",
+            "description": "Bilateral Reference Network achieves SOTA result in multi Salient Object Segmentation dataset, this repo pack BiRefNet as ComfyUI nodes, and make this SOTA model easier use for everyone."
+        },
+        {
+            "author": "asagi4",
+            "title": "ComfyUI prompt control (LEGACY VERSION)",
+            "reference": "https://github.com/asagi4/comfyui-prompt-control-legacy",
+            "files": [
+                "https://github.com/asagi4/comfyui-prompt-control-legacy"
+            ],
+            "install_type": "git-clone",
+            "description": "WARNING: These nodes exist only to reproduce old workflows. They are unmaintained See https://github.com/asagi4/comfyui-prompt-control for the revised, current version of prompt control."
+        },
+        {
+            "author": "doomy23",
+            "title": "ComfyUI-D00MYsNodes [REMOVED]",
+            "reference": "https://github.com/doomy23/ComfyUI-D00MYsNodes",
+            "files": [
+                "https://github.com/doomy23/ComfyUI-D00MYsNodes"
+            ],
+            "install_type": "git-clone",
+            "description": "Nodes: Images_Converter, Show_Text, Strings_From_List, Save_Text, Random_Images, Load_Images_From_Paths, JSPaint."
+        },
+        {
+            "author": "kadirnar",
+            "title": "comfyui_hub [REMOVED]",
+            "reference": "https://github.com/kadirnar/comfyui_hub",
+            "files": [
+                "https://github.com/kadirnar/comfyui_hub"
+            ],
+            "install_type": "git-clone",
+            "description": "A collection of nodes randomly selected and gathered, related to noise. NOTE: SD-Advanced-Noise, noise_latent_perlinpinpin, comfy-plasma"
+        },
+        {
+            "author": "SaltAI",
+            "title": "SaltAI_AudioViz [REMOVED]",
+            "id": "saltai-audioviz",
+            "reference": "https://github.com/get-salt-AI/SaltAI_AudioViz",
+            "files": [
+                "https://github.com/get-salt-AI/SaltAI_AudioViz"
+            ],
+            "install_type": "git-clone",
+            "description": "SaltAI AudioViz contains ComfyUI nodes for generating complex audio reactive visualizations"
+        },
+        {
+            "author": "SaltAI",
+            "title": "SaltAI-Open-Resources [REMOVED]",
+            "id": "saltai-open-resource",
+            "reference": "https://github.com/get-salt-AI/SaltAI",
+            "pip": ["numba"],
+            "files": [
+                "https://github.com/get-salt-AI/SaltAI"
+            ],
+            "install_type": "git-clone",
+            "description": "This repository is a collection of open-source nodes and workflows for ComfyUI, a dev tool that allows users to create node-based workflows often powered by various AI models to do pretty much anything.\nOur mission is to seamlessly connect people and organizations with the world’s foremost AI innovations, anywhere, anytime. Our vision is to foster a flourishing AI ecosystem where the world’s best developers can build and share their work, thereby redefining how software is made, pushing innovation forward, and ensuring as many people as possible can benefit from the positive promise of AI technologies.\nWe believe that ComfyUI is a powerful tool that can help us achieve our mission and vision, by enabling anyone to explore the possibilities and limitations of AI models in a visual and interactive way, without coding if desired.\nWe hope that by sharing our nodes and workflows, we can inspire and empower more people to create amazing AI-powered content with ComfyUI."
+        },
+        {
+            "author": "SaltAI",
+            "title": "SaltAI_Language_Toolkit [REMOVED]",
+            "id": "saltai_language_toolkit",
+            "reference": "https://github.com/get-salt-AI/SaltAI_Language_Toolkit",
+            "files": [
+                "https://github.com/get-salt-AI/SaltAI_Language_Toolkit"
+            ],
+            "install_type": "git-clone",
+            "description": "The project integrates the Retrieval Augmented Generation (RAG) tool [a/Llama-Index](https://www.llamaindex.ai/), [a/Microsoft's AutoGen](https://microsoft.github.io/autogen/), and [a/LlaVA-Next](https://github.com/LLaVA-VL/LLaVA-NeXT) with ComfyUI's adaptable node interface, enhancing the functionality and user experience of the platform."
+        },
+        {
+            "author": "zmwv823",
+            "title": "ComfyUI-Sana [DEPRECATED]",
+            "reference": "https://github.com/zmwv823/ComfyUI-Sana",
+            "files": [
+                "https://github.com/zmwv823/ComfyUI-Sana"
+            ],
+            "install_type": "git-clone",
+            "description": "Unofficial custom-node for [a/SANA: Efficient High-Resolution Image Synthesis with Linear Diffusion Transformer](https://github.com/NVlabs/Sana)\n[w/A init node with lots of bugs, do not try unless interested.]"
+        },
+        {
+            "author": "ACE-innovate",
+            "title": "seg-node [REMOVED]",
+            "reference": "https://github.com/ACE-innovate/seg-node",
+            "files": [
+                "https://github.com/ACE-innovate/seg-node"
+            ],
+            "install_type": "git-clone",
+            "description": "hf cloth seg custom node for comfyui\nNOTE: The files in the repo are not organized."
+        },
+        {
+            "author": "zefu-lu",
+            "title": "ComfyUI_InstantX_SD35_Large_IPAdapter [REMOVED]",
+            "id": "comfyui-instantx-sd3-5-large-ipadapter",
+            "reference": "https://github.com/zefu-lu/ComfyUI-InstantX-SD3_5-Large-IPAdapter",
+            "files": [
+                "https://github.com/zefu-lu/ComfyUI-InstantX-SD3_5-Large-IPAdapter"
+            ],
+            "install_type": "git-clone",
+            "description": "Custom ComfyUI node for using InstantX SD3.5-Large IPAdapter"
+        },
+        {
+            "author": "HentaiGirlfriendDotCom",
+            "title": "comfyui-highlight-connections [REMOVED]",
+            "reference": "https://github.com/HentaiGirlfriendDotCom/comfyui-highlight-connections",
+            "files": [
+                "https://github.com/HentaiGirlfriendDotCom/comfyui-highlight-connections"
+            ],
+            "install_type": "git-clone",
+            "description": "A node that can be dropped into a group. When a node is then clicked within that group, all nodes and connections in that group get greyed out and the connections from the clicked node go bright red."
+        },
+        {
+            "author": "huangyangke",
+            "title": "ComfyUI-Kolors-IpadapterFaceId [DEPRECATED]",
+            "reference": "https://github.com/huangyangke/ComfyUI-Kolors-IpadapterFaceId",
+            "files": [
+                "https://github.com/huangyangke/ComfyUI-Kolors-IpadapterFaceId"
+            ],
+            "install_type": "git-clone",
+            "description": "NODES:kolors_ipadapter_faceid\nNOTE: The files in the repo are not organized."
+        },
+        {
+            "author": "zmwv823",
+            "title": "ComfyUI_Ctrlora [DEPRECATED]",
+            "reference": "https://github.com/zmwv823/ComfyUI_Ctrlora",
+            "files": [
+                "https://github.com/zmwv823/ComfyUI_Ctrlora"
+            ],
+            "install_type": "git-clone",
+            "description": "Unofficial custom_node for [a/xyfJASON/ctrlora](https://github.com/xyfJASON/ctrlora)."
+        },
+        {
+            "author": "Fannovel16",
+            "title": "ComfyUI Loopchain [DEPRECATED]",
+            "id": "loopchain",
+            "reference": "https://github.com/Fannovel16/ComfyUI-Loopchain",
+            "files": [
+                "https://github.com/Fannovel16/ComfyUI-Loopchain"
+            ],
+            "install_type": "git-clone",
+            "description": "A collection of nodes which can be useful for animation in ComfyUI. The main focus of this extension is implementing a mechanism called loopchain. A loopchain in this case is the chain of nodes only executed repeatly in the workflow. If a node chain contains a loop node from this extension, it will become a loop chain."
+        },
+        {
+            "author": "DonBaronFactory",
+            "title": "ComfyUI-Cre8it-Nodes [DEPRECATED]",
+            "reference": "https://github.com/DonBaronFactory/ComfyUI-Cre8it-Nodes",
+            "files": [
+                "https://github.com/DonBaronFactory/ComfyUI-Cre8it-Nodes"
+            ],
+            "install_type": "git-clone",
+            "description": "Nodes:CRE8IT Serial Prompter, CRE8IT Apply Serial Prompter, CRE8IT Image Sizer. A few simple nodes to facilitate working wiht ComfyUI Workflows"
+        },
+        {
+            "author": "thecooltechguy",
+            "title": "ComfyUI-ComfyRun [DEPRECATED/UNSAFE]",
+            "reference": "https://github.com/thecooltechguy/ComfyUI-ComfyRun",
+            "files": [
+                "https://github.com/thecooltechguy/ComfyUI-ComfyRun"
+            ],
+            "install_type": "git-clone",
+            "description": "The easiest way to run & share any ComfyUI workflow [a/https://comfyrun.com](https://comfyrun.com)\nNOTE: Vulnerability discovered. Not being managed."
+        },
+        {
+            "author": "Cardoso-topdev",
+            "title": "comfyui_meshanything_v1 [REMOVED]",
+            "reference": "https://github.com/Cardoso-topdev/comfyui_meshanything_v1",
+            "files": [
+                "https://github.com/Cardoso-topdev/comfyui_meshanything_v1"
+            ],
+            "install_type": "git-clone",
+            "description": "MeshAnything V2: Artist-Created Mesh Generation With Adjacent Mesh Tokenization"
+        },
+        {
+            "author": "palant",
+            "title": "Extended Save Image for ComfyUI [DEPRECATED]",
+            "reference": "https://github.com/palant/extended-saveimage-comfyui",
+            "files": [
+                "https://github.com/palant/extended-saveimage-comfyui"
+            ],
+            "install_type": "git-clone",
+            "description": "This custom node is largely identical to the usual Save Image but allows saving images also in JPEG and WEBP formats, the latter with both lossless and lossy compression. Metadata is embedded in the images as usual, and the resulting images can be used to load a workflow."
+        },
+        {
+            "author": "1038lab",
+            "title": "ComfyUI-GPT2P [REMOVED]",
+            "id": "gpt2p",
+            "reference": "https://github.com/1038lab/ComfyUI-GPT2P",
+            "files": [
+                "https://github.com/1038lab/ComfyUI-GPT2P"
+            ],
+            "install_type": "git-clone",
+            "description": "ComfyUI Node - Hugging Face repositories GTP2 Prompt"
+        },
+        {
+            "author": "yushan777",
+            "title": "Y7 Nodes for ComfyUI [REMOVED]",
+            "id": "y7nodes",
+            "reference": "https://github.com/yushan777/ComfyUI-Y7Nodes",
+            "files": [
+                "https://github.com/yushan777/ComfyUI-Y7Nodes"
+            ],
+            "install_type": "git-clone",
+            "description": "Nodes:Count_Tokens_(Y7)"
+        },
+        {
+            "author": "city96",
+            "title": "SD-Advanced-Noise [DEPRECATED]",
+            "id": "adv-noise",
+            "reference": "https://github.com/city96/SD-Advanced-Noise",
+            "files": [
+                "https://github.com/city96/SD-Advanced-Noise"
+            ],
+            "install_type": "git-clone",
+            "description": "Nodes: LatentGaussianNoise, MathEncode. An experimental custom node that generates latent noise directly by utilizing the linear characteristics of the latent space."
+        },
+        {
+            "author": "shockz0rz",
+            "title": "InterpolateEverything [DEPRECATED]",
+            "id": "interpolate-everything",
+            "reference": "https://github.com/shockz0rz/ComfyUI_InterpolateEverything",
+            "files": [
+                "https://github.com/shockz0rz/ComfyUI_InterpolateEverything"
+            ],
+            "install_type": "git-clone",
+            "description": "Nodes: Interpolate Poses, Interpolate Lineart, ... Custom nodes for interpolating between, well, everything in the Stable Diffusion ComfyUI."
+        },
+        {
+            "author": "svdC1",
+            "title": "LoRa Dataset Tools [REMOVED]",
+            "reference": "https://github.com/svdC1/comfy-ui-lora-dataset-tools",
+            "files": [
+                "https://github.com/svdC1/comfy-ui-lora-dataset-tools"
+            ],
+            "install_type": "git-clone",
+            "description": "NODES:Directory Loader, Filter Images Without Faces, Detect Faces and Draw Detection Box"
+        },
+        {
+            "author": "MiddleKD",
+            "title": "ComfyUI-default-workflow-setter [REMOVED]",
+            "reference": "https://github.com/MiddleKD/ComfyUI-default-workflow-setter",
+            "files": [
+                "https://github.com/MiddleKD/ComfyUI-default-workflow-setter"
+            ],
+            "install_type": "git-clone",
+            "description": "Default workflow setter"
+        },
+        {
+            "author": "Firetheft",
+            "title": "ComfyUI-Flux-Prompt-Tools [REMOVED]",
+            "reference": "https://github.com/Firetheft/ComfyUI-Flux-Prompt-Tools",
+            "files": [
+                "https://github.com/Firetheft/ComfyUI-Flux-Prompt-Tools"
+            ],
+            "install_type": "git-clone",
+            "description": "NODES:Flux Prompt Enhance, Flux Prompt Gemini Flash, Flux Prompt Generator, MiniCPM V2.6 Int4"
+        },
+        {
+            "author": "jtydhr88",
+            "title": "ComfyUI Unique3D [DEPRECATED]",
+            "id": "unique3d",
+            "reference": "https://github.com/jtydhr88/ComfyUI-Unique3D",
+            "files": [
+                "https://github.com/jtydhr88/ComfyUI-Unique3D"
+            ],
+            "install_type": "git-clone",
+            "description": "ComfyUI Unique3D is custom nodes that running AiuniAI/Unique3D into ComfyUI[w/Please follow readme to install with ComfyUI embedded python.]"
+        },
+        {
+            "author": "mpiquero7164",
+            "title": "SaveImgPrompt [DEPRECATED]",
+            "id": "save-imgprompt",
+            "reference": "https://github.com/mpiquero7164/ComfyUI-SaveImgPrompt",
+            "files": [
+                "https://github.com/mpiquero7164/ComfyUI-SaveImgPrompt"
+            ],
+            "install_type": "git-clone",
+            "description": "Save a png or jpeg and option to save prompt/workflow in a text or json file for each image in Comfy + Workflow loading."
+        },
+        {
+            "author": "guoyk93",
+            "title": "y.k.'s ComfyUI node suite [DEPRECATED]",
+            "id": "yks",
+            "reference": "https://github.com/yankeguo-deprecated/yk-node-suite-comfyui",
+            "files": [
+                "https://github.com/yankeguo-deprecated/yk-node-suite-comfyui"
+            ],
+            "install_type": "git-clone",
+            "description": "Nodes: YKImagePadForOutpaint, YKMaskToImage"
+        },
+        {
+            "author": "adityathiru",
+            "title": "ComfyUI LLMs [REMOVED]",
+            "reference": "https://github.com/adityathiru/ComfyUI-LLMs",
+            "files": [
+                "https://github.com/adityathiru/ComfyUI-LLMs"
+            ],
+            "install_type": "git-clone",
+            "description": "Goal: To enable folks to rapidly build complex workflows with LLMs\nNOTE:☠️ This is experimental and not recommended to use in a production environment (yet!)"
+        },
         {
             "author": "DannyStone1999",
             "title": "ComfyUI-Depth2Mask [REMOVED]",
@@ -105,16 +429,6 @@
             "description": "ComfyUI-Talking-Head"
         },
         {
-            "author": "yvann-ba",
-            "title": "ComfyUI_Yvann-Nodes [REMOVED]",
-            "reference": "https://github.com/yvann-ba/ComfyUI_Yvann-Nodes",
-            "files": [
-                "https://github.com/yvann-ba/ComfyUI_Yvann-Nodes"
-            ],
-            "install_type": "git-clone",
-            "description": "Audio reactivity nodes for AI animations 🔊 Analyze audio, extract drums and vocals. Generate reactive masks and weights. Create audio-driven visuals. Produce weight graphs and audio masks. Compatible with IPAdapter, ControlNets and more. Features audio scheduling and waveform analysis. Tutorials to use this pack: [a/Yvann Youtube](https://www.youtube.com/@yvann.mp4)"
-        },
-        {
             "author": "jh-leon-kim",
             "title": "ComfyUI-JHK-utils [REMOVED]",
             "id": "jhk",
@@ -164,16 +478,6 @@
             ],
             "install_type": "git-clone",
             "description": "This custom node for ComfyUI provides full-body animation capabilities, including facial rigging, various lighting styles, and green screen output."
-        },
-        {
-            "author": "m-ai-studio",
-            "title": "mai-prompt-progress [REMOVED]",
-            "reference": "https://github.com/m-ai-studio/mai-prompt-progress",
-            "files": [
-                "https://github.com/m-ai-studio/mai-prompt-progress"
-            ],
-            "install_type": "git-clone",
-            "description": "mai-prompt-progress"
         },
         {
             "author": "ZHO-ZHO-ZHO",

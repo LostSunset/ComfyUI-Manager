@@ -1,8 +1,48 @@
 {
     "custom_nodes": [
         {
+            "author": "BlenderNeko",
+            "title": "ltdrdata/ComfyUI_TiledKSampler",
+            "reference": "https://github.com/ltdrdata/ComfyUI_TiledKSampler",
+            "files": [
+                "https://github.com/ltdrdata/ComfyUI_TiledKSampler"
+            ],
+            "install_type": "git-clone",
+            "description": "PR for [a/https://github.com/BlenderNeko/ComfyUI_TiledKSampler/pull/59](https://github.com/BlenderNeko/ComfyUI_TiledKSampler/pull/59)"
+        },
+        {
+            "author": "leeooo001",
+            "title": "ComfyUI-leo-Hamer",
+            "reference": "https://github.com/leeooo001/ComfyUI-leo-Hamer",
+            "files": [
+                "https://github.com/leeooo001/ComfyUI-leo-Hamer"
+            ],
+            "install_type": "git-clone",
+            "description": "Unoffice Hamer-ComfyUI by leo\nNOTE:base on [a/hamer](https://github.com/geopavlakos/hamer)"
+        },
+        {
+            "author": "leeooo001",
+            "title": "ComfyUI-leo-GVHMR",
+            "reference": "https://github.com/leeooo001/ComfyUI-leo-GVHMR",
+            "files": [
+                "https://github.com/leeooo001/ComfyUI-leo-GVHMR"
+            ],
+            "install_type": "git-clone",
+            "description": "Unoffice Hamer-ComfyUI by leo\nNOTE:base on [a/GVHMR](https://github.com/zju3dv/GVHMR)"
+        },
+        {
+            "author": "leeooo001",
+            "title": "RealisDance-ComfyUI",
+            "reference": "https://github.com/leeooo001/ComfyUI-leo-RealisDance",
+            "files": [
+                "https://github.com/leeooo001/ComfyUI-leo-RealisDance"
+            ],
+            "install_type": "git-clone",
+            "description": "Unoffice RealisDance-ComfyUI by leo\nNOTE:base on [a/RealisDance](https://github.com/damo-cv/RealisDance), modified on [a/RealisDanceComfyui](https://github.com/AIFSH/RealisDance-ComfyUI)"
+        },
+        {
             "author": "jags111",
-            "title": "NyaamZ/ComfyUI-Long-CLIP",
+            "title": "NyaamZ/efficiency-nodes-ED",
             "reference": "https://github.com/NyaamZ/efficiency-nodes-ED",
             "files": [
                 "https://github.com/NyaamZ/efficiency-nodes-ED"
@@ -69,6 +109,16 @@
             ],
             "install_type": "git-clone",
             "description": "This is a development respository for debugging migration of StableSR to ComfyUI\n\nNOTE:Forked from [https://github.com/gameltb/Comfyui-StableSR]\nPut the StableSR [a/webui_786v_139.ckpt](https://huggingface.co/Iceclear/StableSR/resolve/main/webui_768v_139.ckpt) model into Comyfui/models/stablesr/, Put the StableSR [a/stablesr_768v_000139.ckpt](https://huggingface.co/Iceclear/StableSR/resolve/main/stablesr_768v_000139.ckpt) model into Comyfui/models/checkpoints/"
+        },
+        {
+            "author": "city96",
+            "title": "Efficient-Large-Model/Extra Models for ComfyUI",
+            "reference": "https://github.com/Efficient-Large-Model/ComfyUI_ExtraModels",
+            "files": [
+                "https://github.com/Efficient-Large-Model/ComfyUI_ExtraModels"
+            ],
+            "install_type": "git-clone",
+            "description": "A forked version of ComfyUI_ExtraModels. (modified by Efficient-Large-Model)"
         }
     ]
 }
