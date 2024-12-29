@@ -206,7 +206,7 @@ def checkout_custom_node_hash(git_custom_node_infos):
         repo_name_to_url[repo_name] = url
 
     for path in os.listdir(working_directory):
-        if '@' in path or path.endswith("ComfyUI-Manager"):
+        if path.endswith("ComfyUI-Manager"):
             continue
 
         fullpath = os.path.join(working_directory, path)
@@ -467,5 +467,5 @@ try:
 except Exception as e:
     print(e)
     sys.exit(-1)
-    
-    
+
+

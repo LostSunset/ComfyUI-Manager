@@ -31,10 +31,12 @@ sys.path.append(glob_path)
 import cm_global
 import cnr_utils
 import manager_util
+import git_utils
 import manager_downloader
+from node_package import InstalledNodePackage
 
 
-version_code = [3, 1]
+version_code = [3, 1, 1]
 version_str = f"V{version_code[0]}.{version_code[1]}" + (f'.{version_code[2]}' if len(version_code) > 2 else '')
 
 
@@ -104,13 +106,13 @@ def check_invalid_nodes():
             if subdir in ['.disabled', '__pycache__']:
                 continue
 
-            if '@' in subdir:
-                spec = subdir.split('@')
-                if spec[1] in ['unknown', 'nightly']:
-                    continue
 
-                if not os.path.exists(os.path.join(root, subdir, '.tracking')):
-                    invalid_nodes[spec[0]] = os.path.join(root, subdir)
+            package = unified_manager.installed_node_packages.get(subdir)
+            if not package:
+                continue
+
+            if not package.isValid():
+                invalid_nodes[subdir] = package.fullpath
 
     node_paths = folder_paths.get_folder_paths("custom_nodes")
     for x in node_paths:
@@ -308,27 +310,10 @@ class ManagedResult:
         return self
 
 
-def get_commit_hash(fullpath):
-    git_head = os.path.join(fullpath, '.git', 'HEAD')
-    if os.path.exists(git_head):
-        with open(git_head) as f:
-            line = f.readline()
-
-            if line.startswith("ref: "):
-                ref = os.path.join(fullpath, '.git', line[5:].strip())
-                if os.path.exists(ref):
-                    with open(ref) as f2:
-                        return f2.readline().strip()
-                else:
-                    return "unknown"
-            else:
-                return line
-
-    return "unknown"
-
-
 class UnifiedManager:
     def __init__(self):
+        self.installed_node_packages: dict[str, InstalledNodePackage] = {}
+
         self.cnr_inactive_nodes = {}       # node_id -> node_version -> fullpath
         self.nightly_inactive_nodes = {}   # node_id -> fullpath
         self.unknown_inactive_nodes = {}   # node_id -> repo url * fullpath
@@ -339,9 +324,9 @@ class UnifiedManager:
         self.custom_node_map_cache = {}    # (channel, mode) -> augmented custom node list json
         self.processed_install = set()
 
+
     def get_cnr_by_repo(self, url):
-        normalized_url = url.replace("git@github.com:", "https://github.com/")
-        return self.repo_cnr_map.get(normalized_url)
+        return self.repo_cnr_map.get(git_utils.normalize_url(url))
 
     def resolve_unspecified_version(self, node_name, guess_mode=None):
         if guess_mode == 'active':
@@ -442,114 +427,50 @@ class UnifiedManager:
 
         return node_name, version_spec, len(spec) > 1
 
-    def resolve_ver(self, fullpath):
-        """
-        resolve version of unclassified custom node based on remote url in .git/config
-        """
-        git_config_path = os.path.join(fullpath, '.git', 'config')
+    def resolve_from_path(self, fullpath):
+        url = git_utils.git_url(fullpath)
+        if url:
+            cnr = self.get_cnr_by_repo(url)
+            commit_hash = git_utils.get_commit_hash(fullpath)
+            if cnr:
+                return {'id': cnr['id'], 'cnr': cnr, 'ver': 'nightly', 'hash': commit_hash}
+            else:
+                url = os.path.basename(url)
+                if url.endswith('.git'):
+                    url = url[:-4]
+                return {'id': url, 'ver': 'unknown', 'hash': commit_hash}
+        else:
+            info = cnr_utils.read_cnr_info(fullpath)
 
-        if not os.path.exists(git_config_path):
-            return "unknown"
-
-        config = configparser.ConfigParser()
-        config.read(git_config_path)
-
-        for k, v in config.items():
-            if k.startswith('remote ') and 'url' in v:
-                cnr = self.get_cnr_by_repo(v['url'])
+            if info:
+                cnr = self.cnr_map.get(info['id'])
                 if cnr:
-                    return "nightly"
+                    return {'id': cnr['id'], 'cnr': cnr, 'ver': info['version']}
                 else:
-                    return "unknown"
-
-    def resolve_id_from_repo(self, fullpath):
-        git_config_path = os.path.join(fullpath, '.git', 'config')
-
-        if not os.path.exists(git_config_path):
-            return None
-
-        config = configparser.ConfigParser()
-        config.read(git_config_path)
-
-        for k, v in config.items():
-            if k.startswith('remote ') and 'url' in v:
-                cnr = self.get_cnr_by_repo(v['url'])
-                if cnr:
-                    return "nightly", cnr['id'], v['url']
-                else:
-                    return "unknown", v['url'].split('/')[-1], v['url']
-
-    def resolve_unknown(self, node_id, fullpath):
-        res = self.resolve_id_from_repo(fullpath)
-
-        if res is None:
-            self.unknown_inactive_nodes[node_id] = '', fullpath
-            return
-
-        ver_spec, node_id, url = res
-
-        if ver_spec == 'nightly':
-            self.nightly_inactive_nodes[node_id] = fullpath
-        else:
-            self.unknown_inactive_nodes[node_id] = url, fullpath
-
-    def update_cache_at_path(self, fullpath, is_disabled):
-        name = os.path.basename(fullpath)
-
-        if name.endswith(".disabled"):
-            node_spec = name[:-9]
-            is_disabled = True
-        else:
-            node_spec = name
-
-        if '@' in node_spec:
-            node_spec = node_spec.split('@')
-            node_id = node_spec[0]
-            if node_id is None:
-                node_version = 'unknown'
+                    return None
             else:
-                node_version = node_spec[1].replace("_", ".")
+                return None
 
-            if node_version != 'unknown':
-                if node_id not in self.cnr_map:
-                    # fallback
-                    v = node_version
+    def update_cache_at_path(self, fullpath):
+        node_package = InstalledNodePackage.from_fullpath(fullpath, self.resolve_from_path)
+        self.installed_node_packages[node_package.id] = node_package
 
-                    self.cnr_map[node_id] = {
-                        'id': node_id,
-                        'name': node_id,
-                        'latest_version': {'version': v},
-                        'publisher': {'id': 'N/A', 'name': 'N/A'}
-                    }
+        if node_package.is_disabled and node_package.is_unknown:
+            # NOTE: unknown package does not have an url.
+            self.unknown_inactive_nodes[node_package.id] = ('', node_package.fullpath)
 
-            elif node_version == 'unknown':
-                res = self.resolve_id_from_repo(fullpath)
-                if res is None:
-                    print(f"Custom node unresolved: {fullpath}")
-                    return
+        if node_package.is_disabled and node_package.is_nightly:
+            self.nightly_inactive_nodes[node_package.id] = node_package.fullpath
 
-                node_version, node_id, _ = res
-        else:
-            res = self.resolve_id_from_repo(fullpath)
-            if res is None:
-                print(f"Custom node unresolved: {fullpath}")
-                return
+        if node_package.is_enabled:
+            self.active_nodes[node_package.id] = node_package.version, node_package.fullpath
 
-            node_version, node_id, _ = res
+        if node_package.is_enabled and node_package.is_unknown:
+            # NOTE: unknown package does not have an url.
+            self.unknown_active_nodes[node_package.id] = ('', node_package.fullpath)
 
-        if not is_disabled:
-            # active nodes
-            if node_version == 'unknown':
-                self.unknown_active_nodes[node_id] = node_version, fullpath
-            else:
-                self.active_nodes[node_id] = node_version, fullpath
-        else:
-            if node_version == 'unknown':
-                self.resolve_unknown(node_id, fullpath)
-            elif node_version == 'nightly':
-                self.nightly_inactive_nodes[node_id] = fullpath
-            else:
-                self.add_to_cnr_inactive_nodes(node_id, node_version, fullpath)
+        if node_package.is_from_cnr and node_package.is_disabled:
+            self.add_to_cnr_inactive_nodes(node_package.id, node_package.version, node_package.fullpath)
 
     def is_updatable(self, node_id):
         cur_ver = self.get_cnr_active_version(node_id)
@@ -713,7 +634,7 @@ class UnifiedManager:
             self.cnr_map[x['id']] = x
 
             if 'repository' in x:
-                normalized_url = x['repository'].replace("git@github.com:", "https://github.com/")
+                normalized_url = git_utils.normalize_url(x['repository'])
                 self.repo_cnr_map[normalized_url] = x
 
         # reload node status info from custom_nodes/*
@@ -722,7 +643,7 @@ class UnifiedManager:
                 fullpath = os.path.join(custom_nodes_path, x)
                 if os.path.isdir(fullpath):
                     if x not in ['__pycache__', '.disabled']:
-                        self.update_cache_at_path(fullpath, is_disabled=False)
+                        self.update_cache_at_path(fullpath)
 
         # reload node status info from custom_nodes/.disabled/*
         for custom_nodes_path in folder_paths.get_folder_paths('custom_nodes'):
@@ -731,7 +652,7 @@ class UnifiedManager:
                 for x in os.listdir(disabled_dir):
                     fullpath = os.path.join(disabled_dir, x)
                     if os.path.isdir(fullpath):
-                        self.update_cache_at_path(fullpath, is_disabled=True)
+                        self.update_cache_at_path(fullpath)
 
     @staticmethod
     async def load_nightly(channel, mode):
@@ -890,7 +811,7 @@ class UnifiedManager:
 
         zip_url = node_info.download_url
         from_path = self.active_nodes[node_id][1]
-        target = f"{node_id}@{version_spec.replace('.', '_')}"
+        target = node_id
         to_path = os.path.join(get_default_custom_nodes_path(), target)
 
         def postinstall():
@@ -925,7 +846,7 @@ class UnifiedManager:
         download_path = os.path.join(get_default_custom_nodes_path(), archive_name)
         manager_downloader.download_url(node_info.download_url, get_default_custom_nodes_path(), archive_name)
 
-        # 2. extract files into <node_id>@<cur_ver>
+        # 2. extract files into <node_id>
         install_path = self.active_nodes[node_id][1]
         extracted = manager_util.extract_package_as_zip(download_path, install_path)
         os.remove(download_path)
@@ -956,21 +877,16 @@ class UnifiedManager:
                 if not os.listdir(x):
                     os.rmdir(x)
 
-        # 5. rename dir name <node_id>@<prev_ver> ==> <node_id>@<cur_ver>
-        new_install_path = os.path.join(get_default_custom_nodes_path(), f"{node_id}@{version_spec.replace('.', '_')}")
-        print(f"'{install_path}' is moved to '{new_install_path}'")
-        shutil.move(install_path, new_install_path)
-
-        # 6. create .tracking file
-        tracking_info_file = os.path.join(new_install_path, '.tracking')
+        # 5. create .tracking file
+        tracking_info_file = os.path.join(install_path, '.tracking')
         with open(tracking_info_file, "w", encoding='utf-8') as file:
             file.write('\n'.join(list(extracted)))
 
-        # 7. post install
+        # 6. post install
         result.target = version_spec
 
         def postinstall():
-            res = self.execute_install_script(f"{node_id}@{version_spec}", new_install_path, instant_execution=instant_execution, no_deps=no_deps)
+            res = self.execute_install_script(f"{node_id}@{version_spec}", install_path, instant_execution=instant_execution, no_deps=no_deps)
             return res
 
         if return_postinstall:
@@ -1012,8 +928,7 @@ class UnifiedManager:
             if repo_and_path is None:
                 return result.fail(f'Specified inactive node not exists: {node_id}@unknown')
             from_path = repo_and_path[1]
-            # NOTE: Keep original name as possible if unknown node
-            # to_path = os.path.join(get_default_custom_nodes_path(), f"{node_id}@unknown")
+
             base_path = extract_base_custom_nodes_dir(from_path)
             to_path = os.path.join(base_path, node_id)
         elif version_spec == 'nightly':
@@ -1022,7 +937,7 @@ class UnifiedManager:
             if from_path is None:
                 return result.fail(f'Specified inactive node not exists: {node_id}@nightly')
             base_path = extract_base_custom_nodes_dir(from_path)
-            to_path = os.path.join(base_path, f"{node_id}@nightly")
+            to_path = os.path.join(base_path, node_id)
         elif version_spec is not None:
             self.unified_disable(node_id, False)
             cnr_info = self.cnr_inactive_nodes.get(node_id)
@@ -1038,7 +953,7 @@ class UnifiedManager:
 
             from_path = cnr_info[version_spec]
             base_path = extract_base_custom_nodes_dir(from_path)
-            to_path = os.path.join(base_path, f"{node_id}@{version_spec.replace('.', '_')}")
+            to_path = os.path.join(base_path, node_id)
 
         if from_path is None or not os.path.exists(from_path):
             return result.fail(f'Specified inactive node path not exists: {from_path}')
@@ -1080,9 +995,6 @@ class UnifiedManager:
                 return result.fail(f'Specified active node not exists: {node_id}')
 
             base_path = extract_base_custom_nodes_dir(repo_and_path[1])
-
-            # NOTE: Keep original name as possible if unknown node
-            # to_path = os.path.join(get_default_custom_nodes_path(), '.disabled', f"{node_id}@unknown")
             to_path = os.path.join(base_path, '.disabled', node_id)
 
             shutil.move(repo_and_path[1], to_path)
@@ -1099,6 +1011,8 @@ class UnifiedManager:
             return result.fail(f'Specified active node not exists: {node_id}')
 
         base_path = extract_base_custom_nodes_dir(ver_and_path[1])
+
+        # NOTE: A disabled node may have multiple versions, so preserve it using the `@ suffix`.
         to_path = os.path.join(base_path, '.disabled', f"{node_id}@{ver_and_path[0].replace('.', '_')}")
         shutil.move(ver_and_path[1], to_path)
         result.append((ver_and_path[1], to_path))
@@ -1112,7 +1026,7 @@ class UnifiedManager:
 
         return result
 
-    def unified_uninstall(self, node_id, is_unknown):
+    def unified_uninstall(self, node_id: str, is_unknown: bool):
         """
         Remove whole installed custom nodes including inactive nodes
         """
@@ -1189,7 +1103,7 @@ class UnifiedManager:
             os.remove(download_path)
 
         # install_path
-        install_path = os.path.join(get_default_custom_nodes_path(), f"{node_id}@{version_spec.replace('.', '_')}")
+        install_path = os.path.join(get_default_custom_nodes_path(), node_id)
         if os.path.exists(install_path):
             return result.fail(f'Install path already exists: {install_path}')
 
@@ -1372,10 +1286,7 @@ class UnifiedManager:
                 if self.is_enabled(node_id, 'cnr'):
                     self.unified_disable(node_id, False)
 
-            if version_spec == 'unknown':
-                to_path = os.path.abspath(os.path.join(get_default_custom_nodes_path(), node_id))    # don't attach @unknown
-            else:
-                to_path = os.path.abspath(os.path.join(get_default_custom_nodes_path(), f"{node_id}@{version_spec.replace('.', '_')}"))
+            to_path = os.path.abspath(os.path.join(get_default_custom_nodes_path(), node_id))
             res = self.repo_install(repo_url, to_path, instant_execution=instant_execution, no_deps=no_deps, return_postinstall=return_postinstall)
             if res.result:
                 if version_spec == 'unknown':
@@ -1424,18 +1335,6 @@ class UnifiedManager:
 
             new_path = os.path.join(get_default_custom_nodes_path(), '.disabled', f"{x}@nightly")
             moves.append((v, new_path))
-
-        print("Migration: STAGE 2")
-        # migrate active nodes
-        for x, v in self.active_nodes.items():
-            if v[0] not in ['nightly']:
-                continue
-
-            if v[1].endswith('@nightly'):
-                continue
-
-            new_path = os.path.join(get_default_custom_nodes_path(), f"{x}@nightly")
-            moves.append((v[1], new_path))
 
         self.reserve_migration(moves)
 
@@ -2343,7 +2242,10 @@ def get_installed_pip_packages():
     return res
 
 
-def get_current_snapshot():
+async def get_current_snapshot():
+    await unified_manager.reload('cache')
+    await unified_manager.get_custom_nodes('default', 'cache')
+
     # Get ComfyUI hash
     repo_path = comfy_path
 
@@ -2360,36 +2262,33 @@ def get_current_snapshot():
 
     # Get custom nodes hash
     for custom_nodes_dir in get_custom_nodes_paths():
-        for path in os.listdir(custom_nodes_dir):
+        paths = os.listdir(custom_nodes_dir)
+
+        disabled_path = os.path.join(custom_nodes_dir, '.disabled')
+        if os.path.exists(disabled_path):
+            for x in os.listdir(disabled_path):
+                paths.append(os.path.join(disabled_path, x))
+
+        for path in paths:
             if path in ['.disabled', '__pycache__']:
                 continue
 
             fullpath = os.path.join(custom_nodes_dir, path)
 
             if os.path.isdir(fullpath):
-                is_disabled = path.endswith(".disabled")
+                is_disabled = path.endswith(".disabled") or os.path.basename(os.path.dirname(fullpath)) == ".disabled"
 
                 try:
-                    git_dir = os.path.join(fullpath, '.git')
+                    info = unified_manager.resolve_from_path(fullpath)
 
-                    parsed_spec = path.split('@')
+                    if info is None:
+                        continue
 
-                    if len(parsed_spec) == 1:
-                        node_id = parsed_spec[0]
-                        ver_spec = 'unknown'
-                    else:
-                        node_id, ver_spec = parsed_spec
-                        ver_spec = ver_spec.replace('_', '.')
-
-                    if len(ver_spec) > 1 and ver_spec not in ['nightly', 'latest', 'unknown']:
+                    if info['ver'] not in ['nightly', 'latest', 'unknown']:
                         if is_disabled:
                             continue  # don't restore disabled state of CNR node.
 
-                        cnr_custom_nodes[node_id] = ver_spec
-
-                    elif not os.path.exists(git_dir):
-                        continue
-
+                        cnr_custom_nodes[info['id']] = info['ver']
                     else:
                         repo = git.Repo(fullpath)
                         commit_hash = repo.head.commit.hexsha
@@ -2419,7 +2318,7 @@ def get_current_snapshot():
     }
 
 
-def save_snapshot_with_postfix(postfix, path=None):
+async def save_snapshot_with_postfix(postfix, path=None):
     if path is None:
         now = datetime.now()
 
@@ -2431,7 +2330,7 @@ def save_snapshot_with_postfix(postfix, path=None):
         file_name = path.replace('\\', '/').split('/')[-1]
         file_name = file_name.split('.')[-2]
 
-    snapshot = get_current_snapshot()
+    snapshot = await get_current_snapshot()
     if path.endswith('.json'):
         with open(path, "w") as json_file:
             json.dump(snapshot, json_file, indent=4)
@@ -2733,7 +2632,7 @@ def populate_github_stats(node_packs, json_obj_github):
         if url in json_obj_github:
             v['stars'] = json_obj_github[url]['stars']
             v['last_update'] = json_obj_github[url]['last_update']
-            v['trust'] = json_obj_github[url]['author_account_age_days'] > 180
+            v['trust'] = json_obj_github[url]['author_account_age_days'] > 600
         else:
             v['stars'] = -1
             v['last_update'] = -1
@@ -2831,8 +2730,8 @@ async def restore_snapshot(snapshot_path, git_helper_extras=None):
                 if v[0] == 'nightly' and cnr_repo_map.get(k):
                     repo_url = cnr_repo_map.get(k)
 
-                    normalized_url1 = repo_url.replace("git@github.com:", "https://github.com/")
-                    normalized_url2 = repo_url.replace("https://github.com/", "git@github.com:")
+                    normalized_url1 = git_utils.normalize_url(repo_url)
+                    normalized_url2 = git_utils.normalize_url_http(repo_url)
 
                     if normalized_url1 not in git_info and normalized_url2 not in git_info:
                         todo_disable.append(k)
@@ -2851,8 +2750,8 @@ async def restore_snapshot(snapshot_path, git_helper_extras=None):
 
                 if cnr_repo_map.get(k):
                     repo_url = cnr_repo_map.get(k)
-                    normalized_url1 = repo_url.replace("git@github.com:", "https://github.com/")
-                    normalized_url2 = repo_url.replace("https://github.com/", "git@github.com:")
+                    normalized_url1 = git_utils.normalize_url(repo_url)
+                    normalized_url2 = git_utils.normalize_url_http(repo_url)
 
                     if normalized_url1 in git_info:
                         commit_hash = git_info[normalized_url1]['hash']
@@ -2889,7 +2788,7 @@ async def restore_snapshot(snapshot_path, git_helper_extras=None):
                     skip_node_packs.append(x[0])
 
             for x in git_info.keys():
-                normalized_url = x.replace("git@github.com:", "https://github.com/")
+                normalized_url = git_utils.normalize_url(x)
                 cnr = unified_manager.repo_cnr_map.get(normalized_url)
                 if cnr is not None:
                     pack_id = cnr['id']
@@ -2915,8 +2814,8 @@ async def restore_snapshot(snapshot_path, git_helper_extras=None):
         if repo_url is None:
             continue
 
-        normalized_url1 = repo_url.replace("git@github.com:", "https://github.com/")
-        normalized_url2 = repo_url.replace("https://github.com/", "git@github.com:")
+        normalized_url1 = git_utils.normalize_url(repo_url)
+        normalized_url2 = git_utils.normalize_url_http(repo_url)
 
         if normalized_url1 not in git_info and normalized_url2 not in git_info:
             todo_disable.append(k2)
@@ -2937,8 +2836,8 @@ async def restore_snapshot(snapshot_path, git_helper_extras=None):
         if repo_url is None:
             continue
 
-        normalized_url1 = repo_url.replace("git@github.com:", "https://github.com/")
-        normalized_url2 = repo_url.replace("https://github.com/", "git@github.com:")
+        normalized_url1 = git_utils.normalize_url(repo_url)
+        normalized_url2 = git_utils.normalize_url_http(repo_url)
 
         if normalized_url1 in git_info:
             commit_hash = git_info[normalized_url1]['hash']

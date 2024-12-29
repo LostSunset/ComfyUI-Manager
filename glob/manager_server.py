@@ -460,7 +460,7 @@ async def update_all(request):
         return web.Response(status=403)
 
     try:
-        core.save_snapshot_with_postfix('autosave')
+        await core.save_snapshot_with_postfix('autosave')
 
         if request.rel_url.query["mode"] == "local":
             channel = 'local'
@@ -544,37 +544,15 @@ def populate_markdown(x):
 
 @routes.get("/customnode/installed")
 async def installed_list(request):
-    result = {}
-    for x in folder_paths.get_folder_paths('custom_nodes'):
-        for module_name in os.listdir(x):
-            if (
-                module_name.endswith('.disabled') or
-                module_name == '__pycache__' or
-                module_name.endswith('.py') or
-                module_name.endswith('.example') or
-                module_name.endswith('.pyc')
-            ):
-                continue
+    unified_manager = core.unified_manager
 
-            spec = module_name.split('@')
+    await unified_manager.reload('cache')
+    await unified_manager.get_custom_nodes('default', 'cache')
 
-            if len(spec) == 2:
-                node_package_name = spec[0]
-                ver = spec[1].replace('_', '.')
-
-                if ver == 'nightly':
-                    ver = None
-            else:
-                node_package_name = module_name
-                ver = None
-
-            # extract commit hash
-            if ver is None:
-                ver = core.get_commit_hash(os.path.join(x, node_package_name))
-
-            result[node_package_name] = ver
-
-    return web.json_response(result, content_type='application/json')
+    return web.json_response({
+        node_id: package.version if package.is_from_cnr else package.get_commit_hash()
+        for node_id, package in unified_manager.installed_node_packages.items() if not package.disabled
+    }, content_type='application/json')
 
 
 @routes.get("/customnode/getlist")
@@ -721,7 +699,7 @@ async def restore_snapshot(request):
 @routes.get("/snapshot/get_current")
 async def get_current_snapshot_api(request):
     try:
-        return web.json_response(core.get_current_snapshot(), content_type='application/json')
+        return web.json_response(await core.get_current_snapshot(), content_type='application/json')
     except:
         return web.Response(status=400)
 
@@ -729,7 +707,7 @@ async def get_current_snapshot_api(request):
 @routes.get("/snapshot/save")
 async def save_snapshot(request):
     try:
-        core.save_snapshot_with_postfix('snapshot')
+        await core.save_snapshot_with_postfix('snapshot')
         return web.Response(status=200)
     except:
         return web.Response(status=400)
