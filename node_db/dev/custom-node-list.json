@@ -10,7 +10,187 @@
         },
 
 
-        
+
+        {
+            "author": "power88",
+            "title": "ComfyUI-PDiD-Nodes [WIP]",
+            "reference": "https://github.com/power88/ComfyUI-PDiD-Nodes",
+            "files": [
+                "https://github.com/power88/ComfyUI-PDiD-Nodes"
+            ],
+            "install_type": "git-clone",
+            "description": "NODES: Get Image Size, Check Character Tag, Nearest SDXL Resolution divided by 64, Get Image Main Color, Blend Images, List Operations, Make Image Gray.\nNOTE: not working"
+        },
+        {
+            "author": "FinetunersAI",
+            "title": "ComfyUI Finetuners [WIP]",
+            "reference": "https://github.com/FinetunersAI/finetuners",
+            "files": [
+                "https://github.com/FinetunersAI/finetuners"
+            ],
+            "install_type": "git-clone",
+            "description": "A collection of utility nodes for ComfyUI to enhance your workflow.\nNOTE: The files in the repo are not organized."
+        },
+        {
+            "author": "sourceful-official",
+            "title": "ComfyUI_InstructPixToPixConditioningLatent [WIP]",
+            "reference": "https://github.com/sourceful-official/ComfyUI_InstructPixToPixConditioningLatent",
+            "files": [
+               "https://github.com/sourceful-official/ComfyUI_InstructPixToPixConditioningLatent"
+            ],
+            "description": "ComfyUI-ComfyUI_InstructPixToPixConditioningLatent\nNOTE:invalid pyproject.toml",
+            "install_type": "git-clone"
+        },
+        {
+            "author": "fritzprix",
+            "title": "ComfyUI-LLM-Utils [WIP]",
+            "reference": "https://github.com/fritzprix/ComfyUI-LLM-Utils",
+            "files": [
+                "https://github.com/fritzprix/ComfyUI-LLM-Utils"
+            ],
+            "install_type": "git-clone",
+            "description": "A collection of utility nodes for ComfyUI focused on text and LLM-related operations\nNOTE: The files in the repo are not organized."
+        },
+        {
+            "author": "ciga2011",
+            "title": "ComfyUI-AppGen [UNSAFE]",
+            "reference": "https://github.com/ciga2011/ComfyUI-AppGen",
+            "files": [
+                "https://github.com/ciga2011/ComfyUI-AppGen"
+            ],
+            "install_type": "git-clone",
+            "description": "A ComfyUI node pack designed to generate and edit Single Page Applications (SPAs) using natural language.[w/This extension allows arbitrary JavaScript code to be executed through the execution of workflows.]"
+        },
+        {
+            "author": "DraconicDragon",
+            "title": "ComfyUI e621 booru Toolkit",
+            "reference": "https://github.com/DraconicDragon/ComfyUI_e621_booru_toolkit",
+            "files": [
+                "https://github.com/DraconicDragon/ComfyUI_e621_booru_toolkit"
+            ],
+            "install_type": "git-clone",
+            "description": "for now: just custom node(s) to fetch tags from a given danbooru (soon e621 too) post link\ncurrently only supports danbooru-style urls + api response formats\nthis repo is a rewrite of: [a/https://github.com/yffyhk/comfyui_auto_danbooru](https://github.com/yffyhk/comfyui_auto_danbooru)"
+        },
+        {
+            "author": "ai-business-hql",
+            "title": "comfyUIAgent [WIP]",
+            "reference": "https://github.com/ai-business-hql/comfyUIAgent",
+            "files": [
+                "https://github.com/ai-business-hql/comfyUIAgent"
+            ],
+            "install_type": "git-clone",
+            "description": "test"
+        },
+        {
+            "author": "Grey3016",
+            "title": "Save2Icon",
+            "reference": "https://github.com/Grey3016/Save2Icon",
+            "files": [
+                "https://github.com/Grey3016/Save2Icon"
+            ],
+            "install_type": "git-clone",
+            "description": "NODES: Save2Icon"
+        },
+        {
+            "author": "sh570655308",
+            "title": "ComfyUI-TopazVideoAI [WIP]",
+            "reference": "https://github.com/sh570655308/ComfyUI-TopazVideoAI",
+            "files": [
+                "https://github.com/sh570655308/ComfyUI-TopazVideoAI"
+            ],
+            "install_type": "git-clone",
+            "description": "NODES: Topaz Video AI (Upscale & Frame Interpolation)\nNOTE1:Requirements: Licensed installation of TopazVideoAI\nNOTE2: The files in the repo are not organized."
+        },
+        {
+            "author": "Chargeuk",
+            "title": "ComfyUI-vts-nodes [WIP]",
+            "reference": "https://github.com/Chargeuk/ComfyUI-vts-nodes",
+            "files": [
+                "https://github.com/Chargeuk/ComfyUI-vts-nodes"
+            ],
+            "install_type": "git-clone",
+            "description": "NODES: Clean Text, Color Mask To Mask, Conditioning Set Batch Mask, Merge Delimited Text, Reduce Batch Size, Text To Batch Prompt, To Text, "
+        },
+        {
+            "author": "ryanontheinside",
+            "title": "ComfyUI_YoloNasObjectDetection_Tensorrt [WIP]",
+            "reference": "https://github.com/ryanontheinside/ComfyUI_YoloNasObjectDetection_Tensorrt",
+            "files": [
+                "https://github.com/ryanontheinside/ComfyUI_YoloNasObjectDetection_Tensorrt"
+            ],
+            "install_type": "git-clone",
+            "description": "ComfyUI YOLO NAS Object Detection with TensorRT"
+        },
+        {
+            "author": "steelan9199",
+            "title": "ComfyUI-Teeth [UNSAFE]",
+            "reference": "https://github.com/steelan9199/ComfyUI-Teeth",
+            "files": [
+                "https://github.com/steelan9199/ComfyUI-Teeth"
+            ],
+            "install_type": "git-clone",
+            "description": "Run Python code, Outline, List, Four-quadrant grid, Nine-square grid[w/This extension poses a risk of executing arbitrary commands through workflow execution. Please be cautious.]"
+        },
+        {
+            "author": "aiden1020",
+            "title": "ComfyUI_Artcoder [WIP]",
+            "reference": "https://github.com/aiden1020/ComfyUI_Artcoder",
+            "files": [
+                "https://github.com/aiden1020/ComfyUI_Artcoder"
+            ],
+            "install_type": "git-clone",
+            "description": "This project is a custom node for ComfyUI that uses [a/ArtCoder](https://arxiv.org/abs/2011.07815) [CVPR 2021] to refine videos generated by [a/AnimateDiff](https://arxiv.org/abs/2307.04725) [ICLR2024 Spotlight] or the other video. The node is to transform these videos into functional QR code videos that can be scanned.\nNOTE: The files in the repo are not organized."
+        },
+        {
+            "author": "A4P7J1N7M05OT",
+            "title": "ComfyUI-ManualSigma",
+            "reference": "https://github.com/A4P7J1N7M05OT/ComfyUI-ManualSigma",
+            "files": [
+                "https://github.com/A4P7J1N7M05OT/ComfyUI-ManualSigma"
+            ],
+            "install_type": "git-clone",
+            "description": "NODES: Manual Sigma"
+        },
+        {
+            "author": "neverbiasu",
+            "title": "ComfyUI-StereoCrafter [WIP]",
+            "reference": "https://github.com/neverbiasu/ComfyUI-StereoCrafter",
+            "files": [
+                "https://github.com/neverbiasu/ComfyUI-StereoCrafter"
+            ],
+            "install_type": "git-clone",
+            "description": "NODES: Depth Splatting Model Loader, Depth Splatting Node, Inpainting Inference Node"
+        },
+        {
+            "author": "watarika",
+            "title": "ComfyUI-exit [UNSAFE]",
+            "reference": "https://github.com/watarika/ComfyUI-exit",
+            "files": [
+                "https://github.com/watarika/ComfyUI-exit"
+            ],
+            "install_type": "git-clone",
+            "description": "Custom node to handle text.[w/This custom node includes a custom node that can terminate ComfyUI.]"
+        },
+        {
+            "author": "watarika",
+            "title": "ComfyUI-Text-Utility [UNSAFE]",
+            "reference": "https://github.com/watarika/ComfyUI-Text-Utility",
+            "files": [
+                "https://github.com/watarika/ComfyUI-Text-Utility"
+            ],
+            "install_type": "git-clone",
+            "description": "Custom node to handle text.[w/This node pack contains a custom node that poses a security risk by providing the ability to read text from arbitrary paths.]"
+        },
+        {
+            "author": "mehbebe",
+            "title": "ComfyLoraGallery [WIP]",
+            "reference": "https://github.com/mehbebe/ComfyLoraGallery",
+            "files": [
+                "https://github.com/mehbebe/ComfyLoraGallery"
+            ],
+            "install_type": "git-clone",
+            "description": "A custom node for ComfyUI that will provide a gallery style lora selector similar to the 'lora' tab in Automatic1111."
+        },
         {
             "author": "karthikg-09",
             "title": "ComfyUI-KG09 [WIP]",
@@ -84,13 +264,13 @@
         },
         {
             "author": "Maxim-Dey",
-            "title": "ComfyUI-MS_Tools",
+            "title": "ComfyUI-MS_Tools [WIP]",
             "reference": "https://github.com/Maxim-Dey/ComfyUI-MaksiTools",
             "files": [
                 "https://github.com/Maxim-Dey/ComfyUI-MaksiTools"
             ],
             "install_type": "git-clone",
-            "description": "NODES: MS Time Measure Node"
+            "description": "NODES: MS Time Measure NodeMaksiTools"
         },
         {
             "author": "jammyfu",
@@ -100,7 +280,7 @@
                 "https://github.com/jammyfu/ComfyUI_PaintingCoderUtils"
             ],
             "install_type": "git-clone",
-            "description": "A collection of utility nodes designed for ComfyUI, offering convenient image processing tools.\nNOTE: The files in the repo are not organized."
+            "description": "A collection of utility nodes designed for ComfyUI, offering convenient image processing tools.\nNOTE: The files in the repo are not organized.\nNOTE: The files in the repo are not organized."
         },
         {
             "author": "krich-cto",
@@ -1047,7 +1227,7 @@
                 "https://github.com/wilzamguerrero/Comfyui-zZzZz"
             ],
             "install_type": "git-clone",
-            "description": "NODES:Download Z, Compress Z, Move Z, Delete Z, Rename Z, Create Z"
+            "description": "NODES:Download Z, Compress Z, Move Z, Delete Z, Rename Z, Create Z, Infinite Z, Share Screen Z"
         },
         {
             "author": "monate0615",
