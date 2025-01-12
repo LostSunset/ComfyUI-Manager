@@ -1,3 +1,8 @@
+"""
+description:
+    `manager_core` contains the core implementation of the management functions in ComfyUI-Manager.
+"""
+
 import json
 import os
 import sys
@@ -36,7 +41,7 @@ import manager_downloader
 from node_package import InstalledNodePackage
 
 
-version_code = [3, 3, 10]
+version_code = [3, 6, 5]
 version_str = f"V{version_code[0]}.{version_code[1]}" + (f'.{version_code[2]}' if len(version_code) > 2 else '')
 
 
@@ -44,6 +49,7 @@ DEFAULT_CHANNEL = "https://raw.githubusercontent.com/ltdrdata/ComfyUI-Manager/ma
 
 
 default_custom_nodes_path = None
+
 
 def get_default_custom_nodes_path():
     global default_custom_nodes_path
@@ -72,6 +78,16 @@ def get_comfyui_tag():
         return repo.git.describe('--tags')
     except:
         return None
+
+
+def get_script_env():
+    copied = os.environ.copy()
+    git_exe = get_config().get('git_exe')
+    if git_exe is not None:
+        copied['GIT_EXE_PATH'] = git_exe
+    copied['COMFYUI_PATH'] = comfy_path
+
+    return copied
 
 
 invalid_nodes = {}
@@ -177,6 +193,10 @@ def update_user_directory(user_dir):
     manager_channel_list_path = os.path.join(manager_files_path, 'channels.list')
     manager_pip_overrides_path = os.path.join(manager_files_path, "pip_overrides.json")
     manager_components_path = os.path.join(manager_files_path, "components")
+    manager_util.cache_dir = os.path.join(manager_files_path, "cache")
+
+    if not os.path.exists(manager_util.cache_dir):
+        os.makedirs(manager_util.cache_dir)
 
 try:
     import folder_paths
@@ -257,7 +277,7 @@ def is_installed(name):
         if match is None:
             if name in pips:
                 return True
-        elif match.group(2) in ['<=', '==', '<']:
+        elif match.group(2) in ['<=', '==', '<', '~=']:
             if name in pips:
                 if manager_util.StrictVersion(pips[name]) >= manager_util.StrictVersion(match.group(3)):
                     print(f"[ComfyUI-Manager] skip black listed pip installation: '{name}'")
@@ -457,6 +477,7 @@ class UnifiedManager:
             cnr = self.get_cnr_by_repo(url)
             commit_hash = git_utils.get_commit_hash(fullpath)
             if cnr:
+                cnr_utils.generate_cnr_id(fullpath, cnr['id'])
                 return {'id': cnr['id'], 'cnr': cnr, 'ver': 'nightly', 'hash': commit_hash}
             else:
                 url = os.path.basename(url)
@@ -683,7 +704,7 @@ class UnifiedManager:
         res = {}
 
         channel_url = normalize_channel(channel)
-        if channel:
+        if channel_url:
             if mode not in ['remote', 'local', 'cache']:
                 print(f"[bold red]ERROR: Invalid mode is specified `--mode {mode}`[/bold red]", file=sys.stderr)
                 return {}
@@ -702,8 +723,12 @@ class UnifiedManager:
         return res
 
     async def get_custom_nodes(self, channel, mode):
-        default_channel = normalize_channel('default')
-        cache = self.custom_node_map_cache.get((default_channel, mode)) # CNR/nightly should always be based on the default channel.
+        # default_channel = normalize_channel('default')
+        # cache = self.custom_node_map_cache.get((default_channel, mode)) # CNR/nightly should always be based on the default channel.
+
+
+        channel = normalize_channel(channel)
+        cache = self.custom_node_map_cache.get((channel, mode)) # CNR/nightly should always be based on the default channel.
 
         if cache is not None:
             return cache
@@ -1206,16 +1231,21 @@ class UnifiedManager:
         repo = git.Repo(repo_path)
 
         if repo.head.is_detached:
-            switch_to_default_branch(repo)
+            if not switch_to_default_branch(repo):
+                return result.fail(f"Failed to switch to default branch: {repo_path}")
 
         current_branch = repo.active_branch
         branch_name = current_branch.name
 
         if current_branch.tracking_branch() is None:
             print(f"[ComfyUI-Manager] There is no tracking branch ({current_branch})")
-            remote_name = 'origin'
+            remote_name = get_remote_name(repo)
         else:
             remote_name = current_branch.tracking_branch().remote_name
+
+        if remote_name is None:
+            return result.fail(f"Failed to get remote when installing: {repo_path}")
+
         remote = repo.remote(name=remote_name)
 
         try:
@@ -1295,7 +1325,10 @@ class UnifiedManager:
             custom_nodes = await self.get_custom_nodes(channel, mode)
             the_node = custom_nodes.get(node_id)
             if the_node is not None:
-                repo_url = the_node['files'][0]
+                if version_spec == 'unknown':
+                    repo_url = the_node['files'][0]
+                else:  # nightly
+                    repo_url = the_node['reference']
             else:
                 result = ManagedResult('install')
                 return result.fail(f"Node '{node_id}@{version_spec}' not found in [{channel}, {mode}]")
@@ -1318,7 +1351,10 @@ class UnifiedManager:
                 if version_spec == 'unknown':
                     self.unknown_active_nodes[node_id] = to_path
                 elif version_spec == 'nightly':
+                    cnr_utils.generate_cnr_id(to_path, node_id)
                     self.active_nodes[node_id] = 'nightly', to_path
+            else:
+                return res
 
             return res.with_target(version_spec)
 
@@ -1370,6 +1406,63 @@ class UnifiedManager:
 unified_manager = UnifiedManager()
 
 
+def identify_node_pack_from_path(fullpath):
+    module_name = os.path.basename(fullpath)
+    if module_name.endswith('.git'):
+        module_name = module_name[:-4]
+
+    repo_url = git_utils.git_url(fullpath)
+    if repo_url is None:
+        # cnr
+        cnr = cnr_utils.read_cnr_info(fullpath)
+        if cnr is not None:
+            return module_name, cnr['version'], cnr['id']
+
+        return None
+    else:
+        # nightly or unknown
+        cnr_id = cnr_utils.read_cnr_id(fullpath)
+        commit_hash = git_utils.get_commit_hash(fullpath)
+
+        if cnr_id is not None:
+            return module_name, commit_hash, cnr_id
+        else:
+            return module_name, commit_hash, ''
+
+
+def get_installed_node_packs():
+    res = {}
+
+    for x in get_custom_nodes_paths():
+        for y in os.listdir(x):
+            if y == '__pycache__' or y == '.disabled':
+                continue
+
+            fullpath = os.path.join(x, y)
+            info = identify_node_pack_from_path(fullpath)
+            if info is None:
+                continue
+
+            is_disabled = not y.endswith('.disabled')
+
+            res[info[0]] = { 'ver': info[1], 'cnr_id': info[2], 'enabled': is_disabled }
+
+        disabled_dirs = os.path.join(x, '.disabled')
+        if os.path.exists(disabled_dirs):
+            for y in os.listdir(disabled_dirs):
+                if y == '__pycache__':
+                    continue
+
+                fullpath = os.path.join(disabled_dirs, y)
+                info = identify_node_pack_from_path(fullpath)
+                if info is None:
+                    continue
+
+                res[info[0]] = { 'ver': info[1], 'cnr_id': info[2], 'enabled': False }
+
+    return res
+
+
 def get_channel_dict():
     global channel_dict
 
@@ -1412,9 +1505,7 @@ class ManagerFuncs:
             print(f"[ComfyUI-Manager] Unexpected behavior: `{cmd}`")
             return 0
 
-        new_env = os.environ.copy()
-        new_env["COMFYUI_PATH"] = comfy_path
-        subprocess.check_call(cmd, cwd=cwd, env=new_env)
+        subprocess.check_call(cmd, cwd=cwd, env=get_script_env())
 
         return 0
 
@@ -1509,18 +1600,47 @@ def get_config():
     return cached_config
 
 
+def get_remote_name(repo):
+    available_remotes = [remote.name for remote in repo.remotes]
+    if 'origin' in available_remotes:
+        return 'origin'
+    elif 'upstream' in available_remotes:
+        return 'upstream'
+    elif len(available_remotes) > 0:
+        return available_remotes[0]
+
+    if not available_remotes:
+        print(f"[ComfyUI-Manager] No remotes are configured for this repository: {repo.working_dir}")
+    else:
+        print(f"[ComfyUI-Manager] Available remotes in '{repo.working_dir}': ")
+        for remote in available_remotes:
+            print(f"- {remote}")
+
+    return None
+
+
 def switch_to_default_branch(repo):
+    remote_name = get_remote_name(repo)
+
     try:
-        default_branch = repo.git.symbolic_ref('refs/remotes/origin/HEAD').replace('refs/remotes/origin/', '')
+        if remote_name is None:
+            return False
+
+        default_branch = repo.git.symbolic_ref(f'refs/remotes/{remote_name}/HEAD').replace(f'refs/remotes/{remote_name}/', '')
         repo.git.checkout(default_branch)
+        return True
     except:
         try:
             repo.git.checkout(repo.heads.master)
         except:
             try:
-                repo.git.checkout(repo.heads.main)
+                if remote_name is not None:
+                    repo.git.checkout('-b', 'master', f'{remote_name}/master')
             except:
-                print("[ComfyUI Manager] Failed to switch to the default branch (master or main)")
+                pass
+
+    print("[ComfyUI Manager] Failed to switch to the default branch")
+    return False
 
 
 def try_install_script(url, repo_path, install_cmd, instant_execution=False):
@@ -1571,9 +1691,8 @@ def __win_check_git_update(path, do_fetch=False, do_update=False):
     else:
         command = [sys.executable, git_script_path, "--check", path]
 
-    new_env = os.environ.copy()
-    new_env["COMFYUI_PATH"] = comfy_path
-    process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=get_default_custom_nodes_path())
+    new_env = get_script_env()
+    process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=get_default_custom_nodes_path(), env=new_env)
     output, _ = process.communicate()
     output = output.decode('utf-8').strip()
 
@@ -1624,10 +1743,8 @@ def __win_check_git_update(path, do_fetch=False, do_update=False):
 
 
 def __win_check_git_pull(path):
-    new_env = os.environ.copy()
-    new_env["COMFYUI_PATH"] = comfy_path
     command = [sys.executable, git_script_path, "--pull", path]
-    process = subprocess.Popen(command, env=new_env, cwd=get_default_custom_nodes_path())
+    process = subprocess.Popen(command, env=get_script_env(), cwd=get_default_custom_nodes_path())
     process.wait()
 
 
@@ -1704,7 +1821,11 @@ def git_repo_update_check_with(path, do_fetch=False, do_update=False, no_deps=Fa
         # Fetch the latest commits from the remote repository
         repo = git.Repo(path)
 
-        remote_name = 'origin'
+        remote_name = get_remote_name(repo)
+
+        if remote_name is None:
+            raise ValueError(f"No remotes are configured for this repository: {path}")
+
         remote = repo.remote(name=remote_name)
 
         if not do_update and repo.head.is_detached:
@@ -1714,7 +1835,8 @@ def git_repo_update_check_with(path, do_fetch=False, do_update=False, no_deps=Fa
             return True, True  # detached branch is treated as updatable
 
         if repo.head.is_detached:
-            switch_to_default_branch(repo)
+            if not switch_to_default_branch(repo):
+                raise ValueError(f"Failed to switch detached branch to default branch: {path}")
 
         current_branch = repo.active_branch
         branch_name = current_branch.name
@@ -1731,7 +1853,9 @@ def git_repo_update_check_with(path, do_fetch=False, do_update=False, no_deps=Fa
                 repo.git.stash()
 
             if f'{remote_name}/{branch_name}' not in repo.refs:
-                switch_to_default_branch(repo)
+                if not switch_to_default_branch(repo):
+                    raise ValueError(f"Failed to switch to default branch while updating: {path}")
+
                 current_branch = repo.active_branch
                 branch_name = current_branch.name
 
@@ -1890,7 +2014,8 @@ def git_pull(path):
             repo.git.stash()
 
         if repo.head.is_detached:
-            switch_to_default_branch(repo)
+            if not switch_to_default_branch(repo):
+                raise ValueError(f"Failed to switch to default branch while pulling: {path}")
 
         current_branch = repo.active_branch
         remote_name = current_branch.tracking_branch().remote_name
@@ -2154,14 +2279,15 @@ def update_path(repo_path, instant_execution=False, no_deps=False):
     repo = git.Repo(repo_path)
 
     if repo.head.is_detached:
-        switch_to_default_branch(repo)
+        if not switch_to_default_branch(repo):
+            return "fail"
 
     current_branch = repo.active_branch
     branch_name = current_branch.name
 
     if current_branch.tracking_branch() is None:
         print(f"[ComfyUI-Manager] There is no tracking branch ({current_branch})")
-        remote_name = 'origin'
+        remote_name = get_remote_name(repo)
     else:
         remote_name = current_branch.tracking_branch().remote_name
     remote = repo.remote(name=remote_name)
@@ -2180,6 +2306,7 @@ def update_path(repo_path, instant_execution=False, no_deps=False):
                       f"-----------------------------------------------------------------------------------------\n"
                       f'git config --global --add safe.directory "{safedir_path}"\n'
                       f"-----------------------------------------------------------------------------------------\n")
+                return "fail"
 
     commit_hash = repo.head.commit.hexsha
     remote_commit_hash = repo.refs[f'{remote_name}/{branch_name}'].object.hexsha
@@ -2249,11 +2376,14 @@ def check_state_of_git_node_pack_single(item, do_fetch=False, do_update_check=Tr
 
     if dir_path and os.path.exists(dir_path):
         if do_update_check:
-            update_state, success = git_repo_update_check_with(dir_path, do_fetch, do_update)
-            if (do_update_check or do_update) and update_state:
-                item['update-state'] = 'true'
-            elif do_update and not success:
-                item['update-state'] = 'fail'
+            try:
+                update_state, success = git_repo_update_check_with(dir_path, do_fetch, do_update)
+                if (do_update_check or do_update) and update_state:
+                    item['update-state'] = 'true'
+                elif do_update and not success:
+                    item['update-state'] = 'fail'
+            except Exception:
+                print(f"[ComfyUI-Manager] Failed to check state of the git node pack: {dir_path}")
 
 
 def get_installed_pip_packages():
